@@ -118,13 +118,13 @@ def main():
         try:
             from ui.enhanced_main_window import EnhancedMainWindow
         except ImportError as e:
-            # 如果增强版本不可用，回退到原版本
-            QMessageBox.warning(
+            # 如果增强版本不可用，显示错误
+            QMessageBox.critical(
                 None, "组件加载失败",
                 f"无法加载增强组件: {str(e)}\n\n"
-                "将使用基础版本..."
+                "请检查文件完整性"
             )
-            from ui.main_window import MainWindow as EnhancedMainWindow
+            return 1
 
         # 创建主窗口
         splash.showMessage("初始化用户界面...", Qt.AlignCenter | Qt.AlignBottom, Qt.white)
@@ -140,44 +140,44 @@ def main():
             # 显示欢迎消息
             if hasattr(window, 'status_bar'):
                 window.status_bar.showMessage(
-                    "欢迎使用RCS-Lite AGV增强仿真系统！点击"+
-                "仿真→启动仿真"+
-                "开始",
-                5000
+                    "欢迎使用RCS-Lite AGV增强仿真系统！点击仿真→启动仿真开始",
+                    5000
                 )
 
-                QTimer.singleShot(2000, show_main_window)  # 2秒后显示主窗口
+        QTimer.singleShot(2000, show_main_window)  # 2秒后显示主窗口
 
-                # 运行应用程序
-                return app.exec_()
+        # 运行应用程序
+        return app.exec_()
 
-            except Exception as e:
-            # 错误处理
-            error_msg = f"程序启动时发生错误:\n\n{str(e)}\n\n详细信息:\n{traceback.format_exc()}"
+    except Exception as e:
+        # 错误处理
+        error_msg = f"程序启动时发生错误:\n\n{str(e)}\n\n详细信息:\n{traceback.format_exc()}"
 
-            try:
-                splash.close()
-            except:
-                pass
-
-            QMessageBox.critical(None, "程序启动失败", error_msg)
-            return 1
-
-    def run_basic_version():
-        """运行基础版本（备用方案）"""
         try:
-            from ui.main_window import MainWindow
-            app = QApplication(sys.argv)
-            window = MainWindow()
-            window.show()
-            return app.exec_()
-        except Exception as e:
-            print(f"基础版本启动失败: {e}")
-            return 1
+            splash.close()
+        except:
+            pass
 
-    def show_help():
-        """显示帮助信息"""
-        help_text = """
+        QMessageBox.critical(None, "程序启动失败", error_msg)
+        return 1
+
+
+def run_basic_version():
+    """运行基础版本（备用方案）"""
+    try:
+        from ui.main_window import MainWindow
+        app = QApplication(sys.argv)
+        window = MainWindow()
+        window.show()
+        return app.exec_()
+    except Exception as e:
+        print(f"基础版本启动失败: {e}")
+        return 1
+
+
+def show_help():
+    """显示帮助信息"""
+    help_text = """
 RCS-Lite AGV增强仿真系统 v6.3
 
 用法:
@@ -211,11 +211,12 @@ RCS-Lite AGV增强仿真系统 v6.3
     • 查看INTEGRATION_GUIDE.md获取详细说明
     • 使用内置帮助菜单获取操作指南
     """
-        print(help_text)
+    print(help_text)
 
-    def show_version():
-        """显示版本信息"""
-        version_text = """
+
+def show_version():
+    """显示版本信息"""
+    version_text = """
 RCS-Lite AGV增强仿真系统
 版本: 6.3
 构建日期: 2024年12月
@@ -235,80 +236,82 @@ Python要求: 3.7+
 - 管控区显示
 - 高清地图导出
     """
-        print(version_text)
+    print(version_text)
 
-    def check_environment():
-        """检查系统环境"""
-        print("=== 系统环境检查 ===")
 
-        # Python版本
-        print(f"Python版本: {sys.version}")
+def check_environment():
+    """检查系统环境"""
+    print("=== 系统环境检查 ===")
 
-        # 检查依赖包
-        print("\n依赖包检查:")
-        required_packages = {
-            'PyQt5': 'PyQt5',
-            'pandas': 'pandas',
-            'sqlite3': 'sqlite3'
-        }
+    # Python版本
+    print(f"Python版本: {sys.version}")
 
-        for name, module in required_packages.items():
-            try:
-                imported = __import__(module)
-                version = getattr(imported, '__version__', '未知')
-                print(f"  ✓ {name}: {version}")
-            except ImportError:
-                print(f"  ✗ {name}: 未安装")
+    # 检查依赖包
+    print("\n依赖包检查:")
+    required_packages = {
+        'PyQt5': 'PyQt5',
+        'pandas': 'pandas',
+        'sqlite3': 'sqlite3'
+    }
 
-        # 检查文件
-        print("\n文件检查:")
-        required_files = [
-            'Map.db',
-            'control_zone.txt',
-            'ui/enhanced_main_window.py',
-            'models/order.py',
-            'models/battery_system.py',
-            'models/task_scheduler.py'
-        ]
-
-        for file_path in required_files:
-            if os.path.exists(file_path):
-                print(f"  ✓ {file_path}")
-            else:
-                print(f"  ✗ {file_path}: 文件缺失")
-
-        print("\n=== 检查完成 ===")
-
-    if __name__ == "__main__":
-        # 处理命令行参数
-        if len(sys.argv) > 1:
-            arg = sys.argv[1].lower()
-
-            if arg in ['-h', '--help']:
-                show_help()
-                sys.exit(0)
-            elif arg == '--version':
-                show_version()
-                sys.exit(0)
-            elif arg == '--check':
-                check_environment()
-                sys.exit(0)
-            elif arg == '--basic':
-                print("启动基础版本...")
-                sys.exit(run_basic_version())
-            else:
-                print(f"未知参数: {arg}")
-                print("使用 -h 或 --help 查看帮助")
-                sys.exit(1)
-
-        # 正常启动
+    for name, module in required_packages.items():
         try:
-            exit_code = main()
-            sys.exit(exit_code)
-        except KeyboardInterrupt:
-            print("\n程序被用户中断")
+            imported = __import__(module)
+            version = getattr(imported, '__version__', '未知')
+            print(f"  ✓ {name}: {version}")
+        except ImportError:
+            print(f"  ✗ {name}: 未安装")
+
+    # 检查文件
+    print("\n文件检查:")
+    required_files = [
+        'Map.db',
+        'control_zone.txt',
+        'ui/enhanced_main_window.py',
+        'models/order.py',
+        'models/battery_system.py',
+        'models/task_scheduler.py'
+    ]
+
+    for file_path in required_files:
+        if os.path.exists(file_path):
+            print(f"  ✓ {file_path}")
+        else:
+            print(f"  ✗ {file_path}: 文件缺失")
+
+    print("\n=== 检查完成 ===")
+
+
+if __name__ == "__main__":
+    # 处理命令行参数
+    if len(sys.argv) > 1:
+        arg = sys.argv[1].lower()
+
+        if arg in ['-h', '--help']:
+            show_help()
             sys.exit(0)
-        except Exception as e:
-            print(f"程序运行时发生未处理的异常: {e}")
-            traceback.print_exc()
+        elif arg == '--version':
+            show_version()
+            sys.exit(0)
+        elif arg == '--check':
+            check_environment()
+            sys.exit(0)
+        elif arg == '--basic':
+            print("启动基础版本...")
+            sys.exit(run_basic_version())
+        else:
+            print(f"未知参数: {arg}")
+            print("使用 -h 或 --help 查看帮助")
             sys.exit(1)
+
+    # 正常启动
+    try:
+        exit_code = main()
+        sys.exit(exit_code)
+    except KeyboardInterrupt:
+        print("\n程序被用户中断")
+        sys.exit(0)
+    except Exception as e:
+        print(f"程序运行时发生未处理的异常: {e}")
+        traceback.print_exc()
+        sys.exit(1)
