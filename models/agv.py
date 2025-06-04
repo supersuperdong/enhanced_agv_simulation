@@ -11,7 +11,7 @@ from .battery_system import BatterySystem
 
 
 class AGV:
-    """增强的AGV自动导引车 - 集成电量和订单系统"""
+    """增强的AGV自动导引车 - 已修复竞态条件"""
 
     def __init__(self, agv_id, start_node):
         # 基本属性
@@ -50,7 +50,7 @@ class AGV:
         # 电量系统
         self.battery_system = BatterySystem(
             capacity=100.0,
-            initial_charge=random.uniform(80, 100)  # 随机初始电量
+            initial_charge=random.uniform(80, 100)
         )
 
         # 载货状态
@@ -66,8 +66,12 @@ class AGV:
         self.total_orders_completed = 0
         self.total_charging_time = 0.0
 
+        # 任务完成标志 - 关键修复点
+        self.task_completion_notified = False
+
         # 占用起始节点
         start_node.occupied_by = self.id
+
 
     def set_path(self, path):
         """设置路径"""
@@ -275,45 +279,6 @@ class AGV:
             else:
                 self.status = f"路径中 {self.current_node.id}"
 
-    def _handle_order_progress(self):
-        """处理订单进度"""
-        if not self.current_order:
-            return
-
-        current_node_id = self.current_node.id
-
-        # 检查是否到达上货点
-        if (current_node_id == self.current_order.pickup_node_id and
-                not self.is_carrying_cargo):
-            self._pickup_cargo()
-
-        # 检查是否到达下货点
-        elif (current_node_id == self.current_order.dropoff_node_id and
-              self.is_carrying_cargo):
-            self._dropoff_cargo()
-
-    def _pickup_cargo(self):
-        """上货"""
-        self.is_carrying_cargo = True
-        self.status = f"在 {self.current_node.id} 上货"
-        print(f"AGV#{self.id} 在节点 {self.current_node.id} 上货")
-
-    def _dropoff_cargo(self):
-        """下货"""
-        self.is_carrying_cargo = False
-        self.total_orders_completed += 1
-
-        if self.current_order:
-            print(f"AGV#{self.id} 在节点 {self.current_node.id} 完成订单 {self.current_order.id}")
-            self.current_order = None
-
-        self.status = f"在 {self.current_node.id} 下货完成"
-
-    def assign_order(self, order):
-        """分配订单"""
-        self.current_order = order
-        self.status = f"接受订单 {order.id}"
-
     def _check_collision_at(self, x, y, other_agvs):
         """检查指定位置是否碰撞"""
         for agv in other_agvs:
@@ -457,3 +422,58 @@ class AGV:
             self.battery_system.stop_charging()
         self.path = []
         self.status = "已销毁"
+
+    def _handle_order_progress(self):
+        """处理订单进度 - 修复版本"""
+        if not self.current_order:
+            return
+
+        current_node_id = self.current_node.id
+
+        # 检查是否到达上货点
+        if (current_node_id == self.current_order.pickup_node_id and
+                not self.is_carrying_cargo):
+            self._pickup_cargo()
+
+        # 检查是否到达下货点
+        elif (current_node_id == self.current_order.dropoff_node_id and
+              self.is_carrying_cargo and not self.task_completion_notified):
+            self._dropoff_cargo()
+
+    def _pickup_cargo(self):
+        """上货"""
+        self.is_carrying_cargo = True
+        self.status = f"在 {self.current_node.id} 上货"
+        print(f"AGV#{self.id} 在节点 {self.current_node.id} 上货")
+
+    def _dropoff_cargo(self):
+        """下货 - 修复版本，避免竞态条件"""
+        self.is_carrying_cargo = False
+        self.total_orders_completed += 1
+        self.task_completion_notified = True  # 设置标志，防止重复触发
+
+        if self.current_order:
+            print(f"AGV#{self.id} 在节点 {self.current_node.id} 完成订单 {self.current_order.id}")
+            # 不在这里直接清空 current_order，让调度器来清理
+
+        self.status = f"在 {self.current_node.id} 下货完成"
+
+    def assign_order(self, order):
+        """分配订单 - 修复版本"""
+        self.current_order = order
+        self.task_completion_notified = False  # 重置标志
+        self.status = f"接受订单 {order.id}"
+
+    def clear_current_order(self):
+        """清空当前订单 - 由调度器调用"""
+        if self.current_order:
+            print(f"AGV#{self.id} 清理订单 {self.current_order.id}")
+            self.current_order = None
+            self.task_completion_notified = False
+
+    def is_task_completed(self):
+        """检查任务是否完成 - 提供给调度器使用"""
+        return (self.current_order is not None and
+                self.current_node.id == self.current_order.dropoff_node_id and
+                not self.is_carrying_cargo and
+                self.task_completion_notified)

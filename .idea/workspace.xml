@@ -6,9 +6,18 @@
   <component name="ChangeListManager">
     <list default="true" id="bc88e1d4-4473-4b58-a4df-8eb32479e4c9" name="更改" comment="change">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/control_zone.txt" beforeDir="false" afterPath="$PROJECT_DIR$/docs/control_zone.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/usage_examples.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/usage_examples.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup_agv.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup_agv.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/INTEGRATION_GUIDE.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJECT_SUMMARY.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deployment_checklist.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/API_REFERENCE.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/example_configs.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/usage_examples.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/agv.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/agv.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/task_scheduler.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/task_scheduler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup_agv.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_system.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,6 +75,7 @@
       <recent name="C:\Users\admin\PycharmProjects\enhanced_agv_simulation" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\admin\PycharmProjects\enhanced_agv_simulation" />
       <recent name="C:\Users\admin\PycharmProjects\enhanced_agv_simulation\docs" />
     </key>
   </component>
@@ -146,7 +156,23 @@
       <option name="project" value="LOCAL" />
       <updated>1749016944670</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="change">
+      <option name="closed" value="true" />
+      <created>1749017683750</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1749017683750</updated>
+    </task>
+    <task id="LOCAL-00006" summary="change">
+      <option name="closed" value="true" />
+      <created>1749017759683</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1749017759683</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
