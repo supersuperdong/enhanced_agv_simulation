@@ -235,8 +235,8 @@ python3 main.py
                 self.log("系统将使用默认配置运行，但可能无法显示地图")
 
                 # 创建空的管控区文件
-                if not os.path.exists("docs/control_zone.txt"):
-                    with open("docs/control_zone.txt", 'w', encoding='utf-8') as f:
+                if not os.path.exists("control_zone.txt"):
+                    with open("control_zone.txt", 'w', encoding='utf-8') as f:
                         f.write("# 管控区配置文件\n# 格式: 每行为一个管控区，节点ID用逗号分隔\n")
                     self.log("已创建空的管控区配置文件")
 
