@@ -17,7 +17,7 @@ from PyQt5.QtCore import QTimer
 from models.order import Order, OrderPriority, OrderGenerator
 from models.battery_system import BatterySystem, BatteryStatus
 from models.task_scheduler import TaskScheduler, SchedulingStrategy
-from models.agv import EnhancedAGV
+from models.agv import AGV
 from models.node import Node
 from utils.config_manager import get_config, apply_preset_config
 from utils.performance_monitor import start_performance_monitoring
@@ -156,7 +156,7 @@ class AGVSimulationDemo:
 
         # 创建AGV
         agv_id = len(self.agvs) + 1
-        agv = EnhancedAGV(agv_id, start_node)
+        agv = AGV(agv_id, start_node)
 
         # 应用自定义配置
         if agv_config:
@@ -456,10 +456,10 @@ def gui_demo():
         app = QApplication(sys.argv)
 
         # 导入GUI组件
-        from ui.main_window import EnhancedMainWindow
+        from ui.main_window import MainWindow
 
         # 创建主窗口
-        window = EnhancedMainWindow()
+        window = MainWindow()
 
         # 获取仿真组件
         simulation = window.get_simulation_widget()
@@ -546,7 +546,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="RCS-Lite AGV增强仿真系统使用示例")
-    parser.add_argument("--mode", choices=["interactive", "gui", "auto"],
+    parser.add_argument("--mode", choices=[ "gui" , "interactive", "auto"],
                         default="interactive", help="演示模式")
     parser.add_argument("--scenario", choices=["basic_demo", "stress_test",
                                                "battery_management", "priority_orders"],

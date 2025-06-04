@@ -6,6 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="bc88e1d4-4473-4b58-a4df-8eb32479e4c9" name="更改" comment="change">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/control_zone.txt" beforeDir="false" afterPath="$PROJECT_DIR$/docs/control_zone.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/usage_examples.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/usage_examples.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup_agv.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup_agv.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,8 +50,11 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Python 测试.Python 测试 (test_system.py 内).executor": "Run",
     "Python.enhanced_main.executor": "Run",
+    "Python.example_configs.executor": "Run",
     "Python.main.executor": "Run",
+    "Python.usage_examples.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "master",
@@ -58,6 +64,9 @@
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\admin\PycharmProjects\enhanced_agv_simulation" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\admin\PycharmProjects\enhanced_agv_simulation\docs" />
     </key>
   </component>
   <component name="RunManager">
@@ -129,7 +138,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749015958473</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="change">
+      <option name="closed" value="true" />
+      <created>1749016944670</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1749016944670</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
