@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.order import Order, OrderGenerator, OrderStatus, OrderPriority
 from models.battery_system import BatterySystem, BatteryStatus, ChargingStation
 from models.task_scheduler import TaskScheduler, TaskType, SchedulingStrategy
-from models.agv import EnhancedAGV
+from models.agv import AGV
 from models.node import Node
 
 
@@ -251,13 +251,13 @@ class TestTaskScheduler(unittest.TestCase):
         self.assertEqual(next_order.priority, OrderPriority.URGENT)
 
 
-class TestEnhancedAGV(unittest.TestCase):
+class TestAGV(unittest.TestCase):
     """增强AGV测试"""
 
     def setUp(self):
         """测试设置"""
         self.start_node = Node("N01", 100, 100, "normal")
-        self.agv = EnhancedAGV(1, self.start_node)
+        self.agv = AGV(1, self.start_node)
 
     def test_agv_initialization(self):
         """测试AGV初始化"""
@@ -333,7 +333,7 @@ class TestSystemIntegration(unittest.TestCase):
     def test_end_to_end_order_flow(self):
         """测试端到端订单流程"""
         # 创建AGV
-        agv = EnhancedAGV(1, self.nodes["N01"])
+        agv = AGV(1, self.nodes["N01"])
 
         # 创建订单
         order = Order("PP01", "AP01", OrderPriority.HIGH)
@@ -357,7 +357,7 @@ class TestSystemIntegration(unittest.TestCase):
 
     def test_battery_charge_cycle(self):
         """测试完整充电周期"""
-        agv = EnhancedAGV(1, self.nodes["N01"])
+        agv = AGV(1, self.nodes["N01"])
 
         # 设置低电量
         agv.battery_system.current_charge = 20.0
@@ -436,7 +436,7 @@ def run_all_tests():
         TestOrderSystem,
         TestBatterySystem,
         TestTaskScheduler,
-        TestEnhancedAGV,
+        TestAGV,
         TestSystemIntegration,
         TestPerformance
     ]
@@ -459,7 +459,7 @@ def run_specific_test(test_name):
         'order': TestOrderSystem,
         'battery': TestBatterySystem,
         'scheduler': TestTaskScheduler,
-        'agv': TestEnhancedAGV,
+        'agv': TestAGV,
         'integration': TestSystemIntegration,
         'performance': TestPerformance
     }

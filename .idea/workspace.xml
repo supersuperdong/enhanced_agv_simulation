@@ -4,24 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bc88e1d4-4473-4b58-a4df-8eb32479e4c9" name="更改" comment="init commit">
-      <change afterPath="$PROJECT_DIR$/control_zone.txt" afterDir="false" />
+    <list default="true" id="bc88e1d4-4473-4b58-a4df-8eb32479e4c9" name="更改" comment="change">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/INTEGRATION_GUIDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/INTEGRATION_GUIDE.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PROJECT_SUMMARY.md" beforeDir="false" afterPath="$PROJECT_DIR$/PROJECT_SUMMARY.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README_ENHANCED.md" beforeDir="false" afterPath="$PROJECT_DIR$/README_ENHANCED.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/algorithms/path_planner.py" beforeDir="false" afterPath="$PROJECT_DIR$/algorithms/path_planner.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/API_REFERENCE.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/API_REFERENCE.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/enhanced_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/usage_examples.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/usage_examples.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/enhanced_agv.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/agv.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements_enhanced.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup_enhanced_agv.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup_agv.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_enhanced_system.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_system.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/enhanced_control_panel.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/control_panel.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/enhanced_main_window.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/main_window.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/enhanced_simulation_widget.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/simulation_widget.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -137,7 +121,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749007653021</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="change">
+      <option name="closed" value="true" />
+      <created>1749015958473</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1749015958473</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -153,6 +145,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="init commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="init commit" />
+    <MESSAGE value="change" />
+    <option name="LAST_COMMIT_MESSAGE" value="change" />
   </component>
 </project>
