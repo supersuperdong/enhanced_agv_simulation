@@ -17,7 +17,7 @@ from PyQt5.QtCore import QTimer
 from models.order import Order, OrderPriority, OrderGenerator
 from models.battery_system import BatterySystem, BatteryStatus
 from models.task_scheduler import TaskScheduler, SchedulingStrategy
-from models.enhanced_agv import EnhancedAGV
+from models.agv import EnhancedAGV
 from models.node import Node
 from utils.config_manager import get_config, apply_preset_config
 from utils.performance_monitor import start_performance_monitoring
@@ -456,7 +456,7 @@ def gui_demo():
         app = QApplication(sys.argv)
 
         # 导入GUI组件
-        from ui.enhanced_main_window import EnhancedMainWindow
+        from ui.main_window import EnhancedMainWindow
 
         # 创建主窗口
         window = EnhancedMainWindow()

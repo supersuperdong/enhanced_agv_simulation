@@ -4,45 +4,24 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bc88e1d4-4473-4b58-a4df-8eb32479e4c9" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/dbnavigator.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/enhanced_agv_simulation.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/INTEGRATION_GUIDE.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Map.db" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/PROJECT_SUMMARY.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/README_ENHANCED.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/algorithms/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/algorithms/path_planner.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/map_loader.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/deployment_checklist.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/API_REFERENCE.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/enhanced_main.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/examples/example_configs.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/examples/usage_examples.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/models/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/models/battery_system.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/models/control_zone_manager.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/models/enhanced_agv.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/models/node.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/models/order.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/models/path.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/models/task_scheduler.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/requirements_enhanced.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/setup_enhanced_agv.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_enhanced_system.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ui/agv_property_dialog.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ui/enhanced_control_panel.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ui/enhanced_main_window.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ui/enhanced_simulation_widget.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/config_manager.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/data_analyzer.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/performance_monitor.py" afterDir="false" />
+    <list default="true" id="bc88e1d4-4473-4b58-a4df-8eb32479e4c9" name="更改" comment="init commit">
+      <change afterPath="$PROJECT_DIR$/control_zone.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/INTEGRATION_GUIDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/INTEGRATION_GUIDE.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJECT_SUMMARY.md" beforeDir="false" afterPath="$PROJECT_DIR$/PROJECT_SUMMARY.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README_ENHANCED.md" beforeDir="false" afterPath="$PROJECT_DIR$/README_ENHANCED.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/algorithms/path_planner.py" beforeDir="false" afterPath="$PROJECT_DIR$/algorithms/path_planner.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/API_REFERENCE.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/API_REFERENCE.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/enhanced_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/usage_examples.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/usage_examples.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/enhanced_agv.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/agv.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements_enhanced.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup_enhanced_agv.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup_agv.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_enhanced_system.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_system.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/enhanced_control_panel.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/control_panel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/enhanced_main_window.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/main_window.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/enhanced_simulation_widget.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/simulation_widget.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,6 +38,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "supersuperdong"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/supersuperdong/enhanced_agv_simulation",
+    "accountId": "c28ccf7d-81e0-4215-a630-87862b070993"
+  }
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 4
 }</component>
@@ -73,6 +64,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Python.enhanced_main.executor": "Run",
+    "Python.main.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "master",
@@ -83,6 +75,35 @@
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\admin\PycharmProjects\enhanced_agv_simulation" />
     </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="enhanced_agv_simulation" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.main" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -100,6 +121,38 @@
       <option name="presentableId" value="Default" />
       <updated>1749005097710</updated>
     </task>
+    <task id="LOCAL-00001" summary="init commit">
+      <option name="closed" value="true" />
+      <created>1749006874427</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1749006874427</updated>
+    </task>
+    <task id="LOCAL-00002" summary="init commit">
+      <option name="closed" value="true" />
+      <created>1749007653021</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1749007653021</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="init commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="init commit" />
   </component>
 </project>

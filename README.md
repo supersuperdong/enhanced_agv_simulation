@@ -70,10 +70,10 @@ RCS-Lite AGV增强智能仿真系统是一个功能完整的AGV（自动导引�
 
 ```bash
 # 1. 下载快速部署脚本
-python setup_enhanced_agv.py --mode recommended
+python setup_agv.py --mode recommended
 
 # 2. 启动系统
-python enhanced_main.py
+python main.py
 
 # 3. 点击"演示模式"快速体验
 ```
@@ -89,7 +89,7 @@ git clone [项目地址]
 cd agv_simulation_system
 
 # 3. 运行系统
-python enhanced_main.py
+python main.py
 ```
 
 ### 🎪 首次体验
@@ -286,20 +286,20 @@ pip install PyQt5 pandas numpy matplotlib Pillow
 
 #### 完整安装（所有功能）
 ```bash
-pip install -r requirements_enhanced.txt
+pip install -r requirements.txt
 ```
 
 ### 一键部署
 
 ```bash
 # 下载部署脚本
-python setup_enhanced_agv.py
+python setup_agv.py
 
 # 选择安装模式
-python setup_enhanced_agv.py --mode full
+python setup_agv.py --mode full
 
 # 检查环境
-python setup_enhanced_agv.py --check-only
+python setup_agv.py --check-only
 ```
 
 ### Docker部署（开发中）
@@ -368,12 +368,12 @@ scheduler.add_order(order)
 
 ```bash
 # 运行所有测试
-python tests/test_enhanced_system.py
+python tests/test_system.py
 
 # 运行特定模块测试
-python tests/test_enhanced_system.py --test order
-python tests/test_enhanced_system.py --test battery
-python tests/test_enhanced_system.py --test scheduler
+python tests/test_system.py --test order
+python tests/test_system.py --test battery
+python tests/test_system.py --test scheduler
 ```
 
 ### 测试覆盖
@@ -476,7 +476,7 @@ source agv_env/bin/activate  # Linux/Mac
 # agv_env\Scripts\activate   # Windows
 
 # 安装开发依赖
-pip install -r requirements_enhanced.txt
+pip install -r requirements.txt
 pip install pytest flake8 black
 ```
 

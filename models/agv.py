@@ -10,7 +10,7 @@ from PyQt5.QtCore import Qt, QRectF
 from .battery_system import BatterySystem
 
 
-class EnhancedAGV:
+class AGV:
     """增强的AGV自动导引车 - 集成电量和订单系统"""
 
     def __init__(self, agv_id, start_node):

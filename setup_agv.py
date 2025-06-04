@@ -68,9 +68,9 @@ class AGVSystemSetup:
                             "matplotlib>=3.5.0", "Pillow>=8.0.0"]
             elif mode == "full":
                 # 安装完整依赖
-                if os.path.exists("requirements_enhanced.txt"):
+                if os.path.exists("requirements.txt"):
                     subprocess.check_call([sys.executable, '-m', 'pip', 'install',
-                                           '-r', 'requirements_enhanced.txt'])
+                                           '-r', 'requirements.txt'])
                     self.log("从requirements_enhanced.txt安装完整依赖")
                     return True
                 else:
@@ -155,7 +155,7 @@ class AGVSystemSetup:
         if self.system_info['platform'] == 'Windows':
             batch_content = """@echo off
 echo Starting RCS-Lite AGV Enhanced Simulation System...
-python enhanced_main.py
+python main.py
 pause
 """
             with open("start_agv_system.bat", 'w', encoding='utf-8') as f:
@@ -166,7 +166,7 @@ pause
         else:
             shell_content = """#!/bin/bash
 echo "Starting RCS-Lite AGV Enhanced Simulation System..."
-python3 enhanced_main.py
+python3 main.py
 """
             with open("start_agv_system.sh", 'w', encoding='utf-8') as f:
                 f.write(shell_content)
@@ -202,7 +202,7 @@ python3 enhanced_main.py
 
             # 检查关键文件
             required_files = [
-                "enhanced_main.py",
+                "main.py",
                 "models/order.py",
                 "models/battery_system.py",
                 "models/task_scheduler.py"
@@ -264,7 +264,7 @@ RCS-Lite AGV增强仿真系统安装报告
 
         report += """
 使用指南:
-1. 运行程序: python enhanced_main.py
+1. 运行程序: python main.py
 2. 或使用启动脚本 (Windows: start_agv_system.bat, Unix/Linux: ./start_agv_system.sh)
 3. 点击"演示模式"快速体验完整功能
 4. 查看INTEGRATION_GUIDE.md获取详细说明
@@ -330,7 +330,7 @@ RCS-Lite AGV增强仿真系统安装报告
         print("🎉 安装成功！")
         print("=" * 50)
         print("快速开始:")
-        print("  python enhanced_main.py")
+        print("  python main.py")
         print("或使用启动脚本:")
         if self.system_info['platform'] == 'Windows':
             print("  start_agv_system.bat")
@@ -373,7 +373,7 @@ def main():
             response = input().strip().lower()
             if response in ['y', 'yes', '是']:
                 print("启动系统...")
-                os.system("python enhanced_main.py")
+                os.system("python main.py")
         except KeyboardInterrupt:
             print("\n安装完成，您可以稍后手动启动系统")
     else:

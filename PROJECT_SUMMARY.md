@@ -265,10 +265,10 @@ pip install PyQt5 pandas numpy matplotlib
 ### 2. 一键部署
 ```bash
 # 使用快速部署脚本
-python setup_enhanced_agv.py --mode recommended
+python setup_agv.py --mode recommended
 
 # 或手动运行
-python enhanced_main.py
+python main.py
 ```
 
 ### 3. 快速体验

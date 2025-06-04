@@ -101,8 +101,8 @@ pip install PyQt5 pandas numpy
 #### 选项A: 直接使用增强版本（推荐）
 
 ```python
-# enhanced_main.py
-from ui.enhanced_main_window import EnhancedMainWindow
+# main.py
+from ui.main_window import EnhancedMainWindow
 
 app = QApplication(sys.argv)
 window = EnhancedMainWindow()
@@ -116,19 +116,20 @@ sys.exit(app.exec_())
 # 在现有的simulation_widget中集成
 from models.order import OrderGenerator
 from models.task_scheduler import TaskScheduler
-from models.enhanced_agv import EnhancedAGV
+from models.agv import EnhancedAGV
+
 
 class YourSimulationWidget(QWidget):
-    def __init__(self):
-        super().__init__()
-        # 初始化订单系统
-        self.order_generator = OrderGenerator(self.nodes)
-        self.task_scheduler = TaskScheduler(self)
-        
-        # 连接信号
-        self.order_generator.order_generated.connect(
-            self.task_scheduler.add_order
-        )
+   def __init__(self):
+      super().__init__()
+      # 初始化订单系统
+      self.order_generator = OrderGenerator(self.nodes)
+      self.task_scheduler = TaskScheduler(self)
+
+      # 连接信号
+      self.order_generator.order_generated.connect(
+         self.task_scheduler.add_order
+      )
 ```
 
 ### 步骤3: 配置系统参数
@@ -151,7 +152,7 @@ agv.battery_system.charge_rate = 8.0           # 充电速率
 
 1. **运行程序**
    ```bash
-   python enhanced_main.py
+   python main.py
    ```
 
 2. **启动演示模式**

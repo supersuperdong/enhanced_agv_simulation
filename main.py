@@ -116,7 +116,7 @@ def main():
         app.processEvents()
 
         try:
-            from ui.enhanced_main_window import EnhancedMainWindow
+            from ui.main_window import MainWindow
         except ImportError as e:
             # 如果增强版本不可用，显示错误
             QMessageBox.critical(
@@ -130,7 +130,7 @@ def main():
         splash.showMessage("初始化用户界面...", Qt.AlignCenter | Qt.AlignBottom, Qt.white)
         app.processEvents()
 
-        window = EnhancedMainWindow()
+        window = MainWindow()
 
         # 延迟显示主窗口，让启动画面显示足够时间
         def show_main_window():
@@ -181,7 +181,7 @@ def show_help():
 RCS-Lite AGV增强仿真系统 v6.3
 
 用法:
-    python enhanced_main.py [选项]
+    python main.py [选项]
 
 选项:
     -h, --help      显示此帮助信息
@@ -204,7 +204,7 @@ RCS-Lite AGV增强仿真系统 v6.3
 
 快速开始:
     1. 确保已安装依赖: pip install PyQt5 pandas
-    2. 运行程序: python enhanced_main.py
+    2. 运行程序: python main.py
     3. 点击"演示模式"开始体验
 
 技术支持:
@@ -267,7 +267,7 @@ def check_environment():
     required_files = [
         'Map.db',
         'control_zone.txt',
-        'ui/enhanced_main_window.py',
+        'ui/main_window.py',
         'models/order.py',
         'models/battery_system.py',
         'models/task_scheduler.py'

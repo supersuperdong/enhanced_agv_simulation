@@ -7,7 +7,7 @@
 from .node import Node
 from .path import Path
 from .agv import AGV
-from .enhanced_agv import EnhancedAGV
+from .agv import AGV
 from .control_zone_manager import ControlZoneManager
 from .order import Order, OrderStatus, OrderPriority, OrderGenerator
 from .battery_system import BatterySystem, BatteryStatus, ChargingStation
@@ -16,9 +16,6 @@ from .task_scheduler import TaskScheduler, TaskType, SchedulingStrategy, Task, O
 __all__ = [
     # 基础模型
     'Node', 'Path', 'AGV', 'ControlZoneManager',
-
-    # 增强模型
-    'EnhancedAGV',
 
     # 订单系统
     'Order', 'OrderStatus', 'OrderPriority', 'OrderGenerator',

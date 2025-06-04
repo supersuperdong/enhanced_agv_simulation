@@ -507,7 +507,7 @@ class SchedulingStrategy(Enum):
 ### 基础使用
 
 ```python
-from ui.enhanced_main_window import EnhancedMainWindow
+from ui.main_window import EnhancedMainWindow
 from PyQt5.QtWidgets import QApplication
 
 # 创建应用程序

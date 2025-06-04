@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.order import Order, OrderGenerator, OrderStatus, OrderPriority
 from models.battery_system import BatterySystem, BatteryStatus, ChargingStation
 from models.task_scheduler import TaskScheduler, TaskType, SchedulingStrategy
-from models.enhanced_agv import EnhancedAGV
+from models.agv import EnhancedAGV
 from models.node import Node
 
 

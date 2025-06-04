@@ -8,11 +8,11 @@ from PyQt5.QtWidgets import (QMainWindow, QWidget, QHBoxLayout, QSplitter,
 from PyQt5.QtGui import QIcon, QKeySequence
 from PyQt5.QtCore import Qt, QTimer
 
-from ui.enhanced_simulation_widget import EnhancedSimulationWidget
-from ui.enhanced_control_panel import EnhancedControlPanel
+from ui.simulation_widget import SimulationWidget
+from ui.control_panel import ControlPanel
 
 
-class EnhancedMainWindow(QMainWindow):
+class MainWindow(QMainWindow):
     """增强的AGV仿真系统主窗口 - 完整功能版本"""
 
     DEFAULT_WIDTH = 1920
@@ -39,10 +39,10 @@ class EnhancedMainWindow(QMainWindow):
     def _create_widgets(self):
         """创建主要组件"""
         # 增强仿真组件
-        self.simulation_widget = EnhancedSimulationWidget()
+        self.simulation_widget = SimulationWidget()
 
         # 增强控制面板
-        self.control_panel = EnhancedControlPanel(self.simulation_widget)
+        self.control_panel = ControlPanel(self.simulation_widget)
 
     def _create_menu_bar(self):
         """创建菜单栏"""

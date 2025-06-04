@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QWidget, QFileDialog, QMessageBox
 from PyQt5.QtGui import QPainter, QColor, QPen, QFont, QPixmap
 from PyQt5.QtCore import Qt, QTimer
 
-from models.enhanced_agv import EnhancedAGV
+from models.agv import AGV
 from models.path import Path
 from models.order import OrderGenerator, Order, OrderStatus
 from models.battery_system import ChargingStation
@@ -19,7 +19,7 @@ from data.map_loader import MapLoader
 from models.control_zone_manager import ControlZoneManager
 
 
-class EnhancedSimulationWidget(QWidget):
+class SimulationWidget(QWidget):
     """增强AGV仿真显示组件 - 集成完整功能"""
 
     def __init__(self, parent=None):
@@ -165,8 +165,8 @@ class EnhancedSimulationWidget(QWidget):
         if start_node.occupied_by is not None:
             return None
 
-        # 创建增强AGV
-        agv = EnhancedAGV(self.agv_counter, start_node)
+        # 创建AGV
+        agv = AGV(self.agv_counter, start_node)
 
         # 设置颜色
         colors = [QColor(255, 140, 0), QColor(0, 180, 120), QColor(180, 0, 180),

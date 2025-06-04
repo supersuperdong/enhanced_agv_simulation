@@ -17,7 +17,7 @@ from models.order import OrderGenerator, OrderPriority
 from models.task_scheduler import TaskScheduler, SchedulingStrategy
 
 
-class EnhancedControlPanel(QWidget):
+class ControlPanel(QWidget):
     """增强的AGV仿真控制面板 - 集成完整功能"""
 
     def __init__(self, simulation_widget, parent=None):
