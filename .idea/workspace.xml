@@ -6,18 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="bc88e1d4-4473-4b58-a4df-8eb32479e4c9" name="更改" comment="change">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/INTEGRATION_GUIDE.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/PROJECT_SUMMARY.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/deployment_checklist.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/API_REFERENCE.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/example_configs.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/usage_examples.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/agv.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/agv.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/task_scheduler.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/task_scheduler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup_agv.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_system.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/control_panel.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/control_panel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/simulation_widget.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/simulation_widget.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -172,7 +164,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749017759683</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="change">
+      <option name="closed" value="true" />
+      <created>1749018755393</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1749018755393</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">

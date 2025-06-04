@@ -466,7 +466,7 @@ class SimulationWidget(QWidget):
         return None
 
     def _show_agv_info(self, agv):
-        """显示AGV详细信息"""
+        """显示AGV详细信息 - 更新版本支持新状态"""
         try:
             from ui.agv_property_dialog import AGVPropertyDialog
             result, _ = AGVPropertyDialog.edit_agv_properties(agv, self)
@@ -476,24 +476,54 @@ class SimulationWidget(QWidget):
             elif result == 1:  # 更新
                 self.update()
         except ImportError:
-            # 简化版信息显示
+            # 简化版信息显示 - 包含新状态
             status = agv.get_detailed_status()
             battery_info = status['battery']
 
-            info = (f"AGV #{agv.id} - 详细信息\n"
-                    f"位置: ({agv.x:.1f}, {agv.y:.1f})\n"
-                    f"状态: {agv.status}\n"
-                    f"电量: {battery_info['charge']:.1f}% ({battery_info['status']})\n"
-                    f"载货: {'是' if agv.is_carrying_cargo else '否'}\n"
-                    f"总里程: {status['total_distance']:.1f}\n"
-                    f"完成订单: {status['orders_completed']}")
+            # 构建详细状态信息
+            status_info = []
+            status_info.append(f"AGV #{agv.id} - 详细状态")
+            status_info.append(f"位置: ({agv.x:.1f}, {agv.y:.1f})")
+            status_info.append(f"当前节点: {agv.current_node.id}")
 
+            if agv.target_node:
+                status_info.append(f"目标节点: {agv.target_node.id}")
+
+            status_info.append(f"状态: {agv.status}")
+            status_info.append(f"电量: {battery_info['charge']:.1f}% ({battery_info['status']})")
+
+            # 任务状态
+            if agv.current_order:
+                status_info.append(f"当前订单: {agv.current_order.id}")
+
+            status_info.append(f"载货: {'是' if agv.is_carrying_cargo else '否'}")
+
+            # 新增状态信息
+            if agv.is_loading:
+                remaining_time = agv.loading_duration - (time.time() - agv.loading_start_time)
+                status_info.append(f"上货中: 剩余 {remaining_time:.1f}秒")
+            elif agv.is_unloading:
+                remaining_time = agv.unloading_duration - (time.time() - agv.unloading_start_time)
+                status_info.append(f"下货中: 剩余 {remaining_time:.1f}秒")
+
+            status_info.append(f"可接受新任务: {'是' if agv.ready_for_new_task else '否'}")
+            status_info.append(f"移动中: {'是' if agv.moving else '否'}")
+            status_info.append(f"等待中: {'是' if agv.waiting else '否'}")
+
+            if agv.is_at_charging_station:
+                status_info.append(f"充电站: {agv.charging_station_id}")
+
+            status_info.append(f"总里程: {status['total_distance']:.1f}")
+            status_info.append(f"完成订单: {status['orders_completed']}")
+
+            info_text = "\n".join(status_info)
+
+            from PyQt5.QtWidgets import QMessageBox
             reply = QMessageBox.question(self, f"AGV #{agv.id}",
-                                         info + "\n\n删除此AGV?",
+                                         info_text + "\n\n删除此AGV?",
                                          QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:
                 self.remove_agv(agv.id)
-
     def _handle_node_click(self, target_node):
         """处理节点点击 - 增强版本"""
         # 手动分配空闲AGV到点击的节点
@@ -623,10 +653,10 @@ class SimulationWidget(QWidget):
                              f"{len(station.charging_agvs)}/{station.max_agvs}")
 
     def _draw_ui_info(self, painter):
-        """绘制UI信息 - 增强版本"""
+        """绘制UI信息 - 增强版本包含新状态统计"""
         painter.setPen(QPen(Qt.black))
         painter.setFont(QFont('Arial', 12, QFont.Bold))
-        painter.drawText(10, 20, "增强AGV仿真系统 v6.3")
+        painter.drawText(10, 20, "增强AGV仿真系统 v6.3 - 支持上下货等待")
 
         painter.setFont(QFont('Arial', 10))
 
@@ -642,10 +672,20 @@ class SimulationWidget(QWidget):
                                     if agv.battery_system.needs_charging())
             charging_count = sum(1 for agv in self.agvs
                                  if agv.battery_system.is_charging)
+
+            # 新增状态统计
+            loading_count = sum(1 for agv in self.agvs if agv.is_loading)
+            unloading_count = sum(1 for agv in self.agvs if agv.is_unloading)
+            available_count = sum(1 for agv in self.agvs if agv.is_available_for_task())
+            carrying_count = sum(1 for agv in self.agvs if agv.is_carrying_cargo)
         else:
             avg_battery = 0
             low_battery_count = 0
             charging_count = 0
+            loading_count = 0
+            unloading_count = 0
+            available_count = 0
+            carrying_count = 0
 
         # 订单统计
         if hasattr(self, 'task_scheduler'):
@@ -653,8 +693,9 @@ class SimulationWidget(QWidget):
             pending_orders = queue_stats['pending_count']
             processing_orders = queue_stats['processing_count']
             completed_orders = queue_stats['completed_count']
+            active_tasks = len(self.task_scheduler.agv_tasks)
         else:
-            pending_orders = processing_orders = completed_orders = 0
+            pending_orders = processing_orders = completed_orders = active_tasks = 0
 
         # 运行时间
         runtime = time.time() - self.start_time
@@ -662,24 +703,25 @@ class SimulationWidget(QWidget):
 
         info_lines = [
             f"地图: {self.map_source}",
-            f"节点: {len(self.nodes)} (橙色: {control_nodes_count})",
-            f"路径: {len(self.paths)}, AGV: {len(self.agvs)}",
-            f"充电站: {len(self.charging_stations)}个",
-            f"电量: 平均{avg_battery:.1f}%, 低电{low_battery_count}个, 充电{charging_count}个",
+            f"节点: {len(self.nodes)} (橙色管控区: {control_nodes_count})",
+            f"路径: {len(self.paths)}, 充电站: {len(self.charging_stations)}个",
+            f"AGV总数: {len(self.agvs)} (可用: {available_count}, 载货: {carrying_count})",
+            f"AGV状态: 上货{loading_count}个, 下货{unloading_count}个, 充电{charging_count}个",
+            f"电量: 平均{avg_battery:.1f}%, 低电{low_battery_count}个",
             f"订单: 待处理{pending_orders}, 处理中{processing_orders}, 已完成{completed_orders}",
+            f"任务: 活动任务{active_tasks}个",
             f"运行时间: {runtime_str}",
             f"缩放: {self.zoom_scale:.1f}x, 状态: {'运行' if self.simulation_running else '暂停'}"
         ]
 
         for i, line in enumerate(info_lines):
             painter.drawText(10, 35 + i * 15, line)
-
     # =============================================================================
     # 其他方法
     # =============================================================================
 
     def get_map_info(self):
-        """获取地图信息 - 增强版本"""
+        """获取地图信息 - 增强版本包含新统计"""
         agv_stats = {}
         if self.agvs:
             total_battery = sum(agv.battery_system.current_charge for agv in self.agvs)
@@ -687,8 +729,25 @@ class SimulationWidget(QWidget):
                 'avg_battery': total_battery / len(self.agvs),
                 'low_battery_count': sum(1 for agv in self.agvs if agv.battery_system.needs_charging()),
                 'charging_count': sum(1 for agv in self.agvs if agv.battery_system.is_charging),
+                'loading_count': sum(1 for agv in self.agvs if agv.is_loading),
+                'unloading_count': sum(1 for agv in self.agvs if agv.is_unloading),
+                'available_count': sum(1 for agv in self.agvs if agv.is_available_for_task()),
+                'carrying_count': sum(1 for agv in self.agvs if agv.is_carrying_cargo),
                 'total_distance': sum(getattr(agv, 'total_distance_traveled', 0) for agv in self.agvs),
                 'total_orders': sum(getattr(agv, 'total_orders_completed', 0) for agv in self.agvs)
+            }
+
+        # 任务统计
+        task_stats = {}
+        if hasattr(self, 'task_scheduler'):
+            queue_stats = self.task_scheduler.order_queue.get_statistics()
+            task_stats = {
+                'pending_orders': queue_stats['pending_count'],
+                'processing_orders': queue_stats['processing_count'],
+                'completed_orders': queue_stats['completed_count'],
+                'active_tasks': len(self.task_scheduler.agv_tasks),
+                'total_assignments': self.task_scheduler.total_assignments,
+                'failed_assignments': self.task_scheduler.failed_assignments
             }
 
         return {
@@ -698,15 +757,32 @@ class SimulationWidget(QWidget):
             'agv_count': len(self.agvs),
             'charging_station_count': len(self.charging_stations),
             'agv_stats': agv_stats,
+            'task_stats': task_stats,
             'simulation_running': self.simulation_running,
             'runtime': time.time() - self.start_time
         }
 
     def get_agv_list(self):
-        """获取AGV列表 - 增强版本"""
-        return [(agv.id, agv.status, agv.waiting,
-                 agv.battery_system.current_charge,
-                 agv.is_carrying_cargo) for agv in self.agvs]
+        """获取AGV列表 - 增强版本包含新状态"""
+        agv_list = []
+        for agv in self.agvs:
+            status_details = {
+                'id': agv.id,
+                'status': agv.status,
+                'waiting': agv.waiting,
+                'battery': agv.battery_system.current_charge,
+                'carrying_cargo': agv.is_carrying_cargo,
+                'loading': agv.is_loading,
+                'unloading': agv.is_unloading,
+                'available': agv.is_available_for_task(),
+                'at_charging_station': agv.is_at_charging_station,
+                'current_order': agv.current_order.id if agv.current_order else None,
+                'position': (agv.x, agv.y),
+                'current_node': agv.current_node.id
+            }
+            agv_list.append(status_details)
+
+        return agv_list
 
     def set_collision_detection(self, enabled):
         """设置碰撞检测"""

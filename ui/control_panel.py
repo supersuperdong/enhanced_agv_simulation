@@ -97,15 +97,16 @@ class ControlPanel(QWidget):
         return tab_widget
 
     def _create_agv_status_tab(self):
-        """创建AGV状态标签页"""
+        """创建AGV状态标签页 - 更新版本支持新状态列"""
         tab_widget = QWidget()
         layout = QVBoxLayout(tab_widget)
 
-        # AGV状态表格
+        # AGV状态表格 - 增加新列
         self.agv_status_table = QTableWidget()
-        self.agv_status_table.setColumnCount(8)
+        self.agv_status_table.setColumnCount(11)  # 增加列数
         self.agv_status_table.setHorizontalHeaderLabels([
-            "AGV ID", "状态", "电量", "位置", "任务", "载货", "等待", "总里程"
+            "AGV ID", "状态", "电量", "位置", "任务", "载货",
+            "上货", "下货", "可用", "等待", "总里程"
         ])
         layout.addWidget(self.agv_status_table)
 
@@ -120,6 +121,12 @@ class ControlPanel(QWidget):
         self.emergency_stop_button.setStyleSheet("background-color: #ff4444; color: white;")
         self.emergency_stop_button.clicked.connect(self._emergency_stop_all)
         button_layout.addWidget(self.emergency_stop_button)
+
+        # 新增按钮
+        self.idle_charge_button = QPushButton("无任务AGV充电")
+        self.idle_charge_button.setToolTip("让所有无任务的AGV去充电站充电")
+        self.idle_charge_button.clicked.connect(self._send_idle_agvs_to_charge)
+        button_layout.addWidget(self.idle_charge_button)
 
         button_layout.addStretch()
         layout.addLayout(button_layout)
@@ -327,7 +334,7 @@ class ControlPanel(QWidget):
         return group
 
     def _create_statistics_group(self):
-        """创建统计信息组"""
+        """创建统计信息组 - 增强版本包含AGV状态统计"""
         group = QGroupBox("系统统计")
         layout = QGridLayout(group)
 
@@ -348,6 +355,10 @@ class ControlPanel(QWidget):
 
         self.avg_battery_label = QLabel("平均电量: 0%")
         layout.addWidget(self.avg_battery_label, 2, 1)
+
+        # 新增AGV状态统计
+        self.agv_status_summary_label = QLabel("AGV状态: -")
+        layout.addWidget(self.agv_status_summary_label, 3, 0, 1, 2)
 
         return group
 
@@ -553,7 +564,7 @@ class ControlPanel(QWidget):
         self._update_agv_status_table()
 
     def _update_statistics(self):
-        """更新统计信息"""
+        """更新统计信息 - 增强版本包含新状态统计"""
         # 订单统计
         queue_stats = self.task_scheduler.order_queue.get_statistics()
         self.pending_orders_label.setText(f"待处理: {queue_stats['pending_count']}")
@@ -564,15 +575,27 @@ class ControlPanel(QWidget):
         completion_rate = queue_stats['completion_rate'] * 100
         self.completion_rate_label.setText(f"完成率: {completion_rate:.1f}%")
 
-        # AGV统计
+        # AGV统计 - 包含新状态
         if hasattr(self.simulation_widget, 'agvs') and self.simulation_widget.agvs:
-            total_distance = sum(getattr(agv, 'total_distance_traveled', 0)
-                                 for agv in self.simulation_widget.agvs)
+            agvs = self.simulation_widget.agvs
+
+            # 总距离
+            total_distance = sum(getattr(agv, 'total_distance_traveled', 0) for agv in agvs)
             self.total_distance_label.setText(f"总里程: {total_distance:.1f}")
 
-            avg_battery = sum(getattr(agv, 'battery_system', type('', (), {'current_charge': 0})).current_charge
-                              for agv in self.simulation_widget.agvs) / len(self.simulation_widget.agvs)
+            # 平均电量
+            avg_battery = sum(agv.battery_system.current_charge for agv in agvs) / len(agvs)
             self.avg_battery_label.setText(f"平均电量: {avg_battery:.1f}%")
+
+            # 新增统计信息显示
+            if hasattr(self, 'agv_status_summary_label'):
+                loading_count = sum(1 for agv in agvs if getattr(agv, 'is_loading', False))
+                unloading_count = sum(1 for agv in agvs if getattr(agv, 'is_unloading', False))
+                available_count = sum(1 for agv in agvs if getattr(agv, 'is_available_for_task', lambda: False)())
+                charging_count = sum(1 for agv in agvs if agv.battery_system.is_charging)
+
+                status_text = f"AGV状态: 可用{available_count}, 上货{loading_count}, 下货{unloading_count}, 充电{charging_count}"
+                self.agv_status_summary_label.setText(status_text)
 
     def _update_order_table(self):
         """更新订单表格"""
@@ -597,13 +620,26 @@ class ControlPanel(QWidget):
             self.order_table.setItem(row, 6, QTableWidgetItem(str(agv_id)))
 
     def _update_agv_status_table(self):
-        """更新AGV状态表格"""
+        """更新AGV状态表格 - 支持新状态列"""
         agvs = getattr(self.simulation_widget, 'agvs', [])
         self.agv_status_table.setRowCount(len(agvs))
 
         for row, agv in enumerate(agvs):
+            # AGV ID
             self.agv_status_table.setItem(row, 0, QTableWidgetItem(str(agv.id)))
-            self.agv_status_table.setItem(row, 1, QTableWidgetItem(agv.status))
+
+            # 状态 - 包含更详细的状态信息
+            status_text = agv.status
+            if agv.is_loading:
+                import time
+                remaining = agv.loading_duration - (time.time() - agv.loading_start_time)
+                status_text = f"上货中({remaining:.1f}s)"
+            elif agv.is_unloading:
+                remaining = agv.unloading_duration - (time.time() - agv.unloading_start_time)
+                status_text = f"下货中({remaining:.1f}s)"
+
+            status_item = QTableWidgetItem(status_text)
+            self.agv_status_table.setItem(row, 1, status_item)
 
             # 电量显示
             if hasattr(agv, 'battery_system'):
@@ -617,30 +653,117 @@ class ControlPanel(QWidget):
                     battery_item.setBackground(QColor(255, 200, 200))
                 elif agv.battery_system.current_charge < 50:
                     battery_item.setBackground(QColor(255, 255, 200))
+                elif agv.battery_system.is_charging:
+                    battery_item.setBackground(QColor(200, 255, 255))
 
                 self.agv_status_table.setItem(row, 2, battery_item)
             else:
                 self.agv_status_table.setItem(row, 2, QTableWidgetItem("未知"))
 
-            self.agv_status_table.setItem(row, 3, QTableWidgetItem(agv.current_node.id))
+            # 位置
+            position_text = f"{agv.current_node.id}"
+            if agv.target_node:
+                position_text += f"→{agv.target_node.id}"
+            self.agv_status_table.setItem(row, 3, QTableWidgetItem(position_text))
 
             # 任务信息
             task_info = "无"
             if hasattr(agv, 'current_order') and agv.current_order:
                 task_info = f"订单{agv.current_order.id}"
+            elif agv.is_at_charging_station:
+                task_info = "充电中"
             self.agv_status_table.setItem(row, 4, QTableWidgetItem(task_info))
 
             # 载货状态
             cargo_status = "是" if getattr(agv, 'is_carrying_cargo', False) else "否"
-            self.agv_status_table.setItem(row, 5, QTableWidgetItem(cargo_status))
+            cargo_item = QTableWidgetItem(cargo_status)
+            if agv.is_carrying_cargo:
+                cargo_item.setBackground(QColor(255, 215, 0, 100))  # 金色背景
+            self.agv_status_table.setItem(row, 5, cargo_item)
+
+            # 上货状态
+            loading_status = "是" if getattr(agv, 'is_loading', False) else "否"
+            loading_item = QTableWidgetItem(loading_status)
+            if agv.is_loading:
+                loading_item.setBackground(QColor(255, 165, 0, 100))  # 橙色背景
+            self.agv_status_table.setItem(row, 6, loading_item)
+
+            # 下货状态
+            unloading_status = "是" if getattr(agv, 'is_unloading', False) else "否"
+            unloading_item = QTableWidgetItem(unloading_status)
+            if agv.is_unloading:
+                unloading_item.setBackground(QColor(255, 99, 71, 100))  # 番茄色背景
+            self.agv_status_table.setItem(row, 7, unloading_item)
+
+            # 可用状态
+            available_status = "是" if getattr(agv, 'is_available_for_task', lambda: False)() else "否"
+            available_item = QTableWidgetItem(available_status)
+            if agv.is_available_for_task():
+                available_item.setBackground(QColor(144, 238, 144, 100))  # 浅绿色背景
+            else:
+                available_item.setBackground(QColor(255, 182, 193, 100))  # 浅粉色背景
+            self.agv_status_table.setItem(row, 8, available_item)
 
             # 等待状态
             waiting_status = "是" if agv.waiting else "否"
-            self.agv_status_table.setItem(row, 6, QTableWidgetItem(waiting_status))
+            waiting_item = QTableWidgetItem(waiting_status)
+            if agv.waiting:
+                waiting_item.setBackground(QColor(255, 255, 0, 100))  # 黄色背景
+            self.agv_status_table.setItem(row, 9, waiting_item)
 
             # 总里程
             total_distance = getattr(agv, 'total_distance_traveled', 0)
-            self.agv_status_table.setItem(row, 7, QTableWidgetItem(f"{total_distance:.1f}"))
+            self.agv_status_table.setItem(row, 10, QTableWidgetItem(f"{total_distance:.1f}"))
+
+    def _send_idle_agvs_to_charge(self):
+        """发送无任务AGV去充电"""
+        if not hasattr(self.simulation_widget, 'agvs'):
+            return
+
+        idle_agvs = []
+        for agv in self.simulation_widget.agvs:
+            if (hasattr(agv, 'is_available_for_task') and
+                    agv.is_available_for_task() and
+                    agv.battery_system.current_charge < 90):  # 90%以下的无任务AGV
+                idle_agvs.append(agv)
+
+        if not idle_agvs:
+            self._log_message("没有找到需要充电的无任务AGV")
+            return
+
+        # 获取充电站列表
+        charging_stations = [node_id for node_id, node in self.simulation_widget.nodes.items()
+                             if node.node_type == 'charging']
+
+        if not charging_stations:
+            self._log_message("没有可用的充电站")
+            return
+
+        sent_count = 0
+        for agv in idle_agvs:
+            # 找最近的空闲充电站
+            best_station = None
+            best_distance = float('inf')
+
+            for station_id in charging_stations:
+                station_node = self.simulation_widget.nodes[station_id]
+
+                # 检查充电站是否被占用
+                if station_node.occupied_by is not None and station_node.occupied_by != agv.id:
+                    continue
+
+                distance = ((agv.x - station_node.x) ** 2 + (agv.y - station_node.y) ** 2) ** 0.5
+                if distance < best_distance:
+                    best_distance = distance
+                    best_station = station_id
+
+            if best_station:
+                success = self.simulation_widget.send_agv_to_target(agv.id, best_station, 'a_star')
+                if success:
+                    sent_count += 1
+                    agv.ready_for_new_task = False  # 标记为有任务
+
+        self._log_message(f"成功发送 {sent_count}/{len(idle_agvs)} 个无任务AGV去充电")
 
     # =============================================================================
     # 日志方法

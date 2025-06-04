@@ -1,5 +1,5 @@
 """
-修复后的任务调度系统 - 解决竞态条件问题
+修复后的任务调度系统 - 支持状态清理和无任务AGV充电
 """
 
 import time
@@ -48,7 +48,7 @@ class Task:
         self.is_completed = False
         self.is_cancelled = False
 
-        # 任务阶段标记 - 关键修复点
+        # 任务阶段标记
         self.picked_up = False
         self.delivered = False
 
@@ -264,17 +264,20 @@ class TaskScheduler(QObject):
             self._process_task_assignments()
             self.last_assignment_time = current_time
 
-        # 检查任务完成状态 - 修复版本
+        # 检查任务完成状态
         self._check_task_completion_safe()
 
         # 处理充电需求
         self._handle_charging_needs()
 
+        # 处理无任务AGV - 新增
+        self._handle_idle_agvs()
+
     def _check_task_completion_safe(self):
         """安全检查任务完成状态 - 修复版本"""
         completed_tasks = []
 
-        for agv_id, task in list(self.agv_tasks.items()):  # 使用list()避免字典在迭代时被修改
+        for agv_id, task in list(self.agv_tasks.items()):
             agv = self._find_agv_by_id(agv_id)
             if not agv:
                 completed_tasks.append(agv_id)
@@ -285,19 +288,20 @@ class TaskScheduler(QObject):
                 if (task.task_type == TaskType.TRANSPORT and
                         task.order and not agv.moving):
 
-                    # 检查是否到达上货点
+                    # 检查是否到达上货点并完成上货
                     if (agv.current_node.id == task.order.pickup_node_id and
-                            not task.picked_up and not agv.is_carrying_cargo):
+                            not task.picked_up and agv.is_carrying_cargo and
+                            not agv.is_loading):
                         task.picked_up = True
-                        print(f"AGV#{agv_id} 到达上货点 {task.order.pickup_node_id}")
+                        print(f"AGV#{agv_id} 完成上货 {task.order.pickup_node_id}")
 
                         # 规划到下货点的路径
                         self.simulation_widget.send_agv_to_target(
                             agv_id, task.order.dropoff_node_id, 'a_star'
                         )
 
-                    # 检查是否到达下货点并完成任务 - 关键修复点
-                    elif agv.is_task_completed():  # 使用AGV提供的安全方法
+                    # 检查是否到达下货点并完成任务
+                    elif agv.is_task_completed():
                         # 任务完成
                         task.complete()
                         self.order_queue.complete_order(agv_id)
@@ -317,7 +321,6 @@ class TaskScheduler(QObject):
 
             except Exception as e:
                 print(f"检查任务完成状态时发生错误 (AGV#{agv_id}): {e}")
-                # 发生错误时，安全地移除任务避免程序崩溃
                 completed_tasks.append(agv_id)
 
         # 清理完成的任务
@@ -350,13 +353,61 @@ class TaskScheduler(QObject):
         available_agvs = []
 
         for agv in self.simulation_widget.agvs:
-            if (agv.id not in self.agv_tasks and
-                    not agv.moving and
-                    agv.battery_system.can_move() and
-                    not agv.battery_system.is_charging):
+            if agv.is_available_for_task() and agv.id not in self.agv_tasks:
                 available_agvs.append(agv)
 
         return available_agvs
+
+    def _handle_idle_agvs(self):
+        """处理无任务AGV - 新增功能"""
+        for agv in self.simulation_widget.agvs:
+            # 检查是否是无任务AGV且需要维护性充电
+            if (agv.needs_maintenance_charging() and
+                agv.id not in self.agv_tasks):
+
+                # 为无任务AGV分配充电任务
+                self._assign_maintenance_charging_task(agv)
+
+    def _assign_maintenance_charging_task(self, agv):
+        """为无任务AGV分配维护性充电任务"""
+        charging_stations = [node_id for node_id, node in self.simulation_widget.nodes.items()
+                             if node.node_type == 'charging']
+
+        if not charging_stations:
+            return False
+
+        # 选择最近的充电站
+        best_station = None
+        best_distance = float('inf')
+
+        for station_id in charging_stations:
+            station_node = self.simulation_widget.nodes[station_id]
+
+            # 跳过被占用的充电站
+            if station_node.occupied_by is not None and station_node.occupied_by != agv.id:
+                continue
+
+            distance = ((agv.x - station_node.x) ** 2 + (agv.y - station_node.y) ** 2) ** 0.5
+
+            if distance < best_distance:
+                best_distance = distance
+                best_station = station_id
+
+        if best_station:
+            task = Task(TaskType.CHARGING, agv.id, best_station)
+
+            success = self.simulation_widget.send_agv_to_target(
+                agv.id, best_station, 'a_star'
+            )
+
+            if success:
+                self.agv_tasks[agv.id] = task
+                task.start()
+                agv.ready_for_new_task = False  # 标记为有任务
+                print(f"分配维护充电任务: AGV#{agv.id} -> 充电站{best_station}")
+                return True
+
+        return False
 
     def _select_best_agv(self, order, available_agvs):
         """选择最适合的AGV"""
@@ -416,7 +467,7 @@ class TaskScheduler(QObject):
             if success:
                 self.agv_tasks[agv.id] = task
                 self.order_queue.assign_order(order, agv.id)
-                agv.assign_order(order)  # 使用修复后的方法
+                agv.assign_order(order)
                 task.start()
 
                 self.total_assignments += 1
@@ -435,15 +486,16 @@ class TaskScheduler(QObject):
             return False
 
     def _handle_charging_needs(self):
-        """处理充电需求"""
+        """处理紧急充电需求"""
         for agv in self.simulation_widget.agvs:
             if (agv.battery_system.needs_immediate_charging() and
                     agv.id not in self.agv_tasks and
-                    not agv.moving):
-                self._assign_charging_task(agv)
+                    not agv.moving and
+                    agv.is_available_for_task()):
+                self._assign_emergency_charging_task(agv)
 
-    def _assign_charging_task(self, agv):
-        """分配充电任务"""
+    def _assign_emergency_charging_task(self, agv):
+        """分配紧急充电任务"""
         charging_stations = [node_id for node_id, node in self.simulation_widget.nodes.items()
                              if node.node_type == 'charging']
 
@@ -473,7 +525,8 @@ class TaskScheduler(QObject):
             if success:
                 self.agv_tasks[agv.id] = task
                 task.start()
-                print(f"分配充电任务: AGV#{agv.id} -> 充电站{best_station}")
+                agv.ready_for_new_task = False
+                print(f"分配紧急充电任务: AGV#{agv.id} -> 充电站{best_station}")
                 return True
 
         return False
@@ -505,7 +558,7 @@ class TaskScheduler(QObject):
         for order in self.order_queue.pending_orders:
             if order.id == order_id:
                 agv = self._find_agv_by_id(agv_id)
-                if agv and agv.id not in self.agv_tasks:
+                if agv and agv.is_available_for_task():
                     self.order_queue.pending_orders.remove(order)
                     return self._assign_transport_task(agv, order)
         return False
