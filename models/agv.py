@@ -1,5 +1,5 @@
 """
-增强的AGV模型类 - 修复版本，支持上下货等待和状态清理
+AGV模型类 - 增加电量管理
 """
 
 import math
@@ -7,11 +7,9 @@ import random
 from PyQt5.QtGui import QPainter, QColor, QBrush, QPen, QFont
 from PyQt5.QtCore import Qt, QRectF
 
-from .battery_system import BatterySystem
-
 
 class AGV:
-    """增强的AGV自动导引车 - 修复版本"""
+    """AGV自动导引车 - 支持电量管理"""
 
     def __init__(self, agv_id, start_node):
         # 基本属性
@@ -41,45 +39,59 @@ class AGV:
         self.task_target = None
 
         # 状态属性
-        self.status = "待机"
+        self.status = "空闲"
         self.waiting = False
         self.collision_buffer = 25
         self.wait_counter = 0
         self.priority = 5
 
-        # 电量系统
-        self.battery_system = BatterySystem(
-            capacity=100.0,
-            initial_charge=random.uniform(80, 100)
-        )
+        # 电量管理
+        self.battery = 100.0  # 电量百分比
+        self.is_charging = False
+        self.need_charge = False
 
-        # 载货状态
-        self.is_carrying_cargo = False
+        # 订单相关
         self.current_order = None
-
-        # 充电状态
-        self.is_at_charging_station = False
-        self.charging_station_id = None
-
-        # 上下货等待状态 - 新增
-        self.is_loading = False
-        self.is_unloading = False
-        self.loading_start_time = 0
-        self.loading_duration = 0
-        self.unloading_start_time = 0
-        self.unloading_duration = 0
-
-        # 性能统计
-        self.total_distance_traveled = 0.0
-        self.total_orders_completed = 0
-        self.total_charging_time = 0.0
-
-        # 任务完成标志
-        self.task_completion_notified = False
-        self.ready_for_new_task = True  # 新增：是否准备接受新任务
+        self.is_loaded = False  # 是否载货
+        self.loading_time = 0  # 上下料倒计时
+        self.is_loading = False  # 是否正在上下料
 
         # 占用起始节点
         start_node.occupied_by = self.id
+
+    def update_battery(self):
+        """更新电量"""
+        if self.is_charging:
+            # 充电中
+            self.battery = min(100.0, self.battery + 2.0 / 60)  # 2%/秒
+            if self.battery >= 100.0:
+                self.is_charging = False
+                self.status = "充电完成"
+        elif self.is_loading:
+            # 上下料时不消耗电量
+            pass
+        elif self.moving:
+            # 移动中消耗电量
+            if self.is_loaded:
+                self.battery -= 0.3 / 60  # 载货时0.3%/秒
+            else:
+                self.battery -= 0.2 / 60  # 空载时0.2%/秒
+        else:
+            # 空闲消耗
+            self.battery -= 0.05 / 60  # 0.05%/秒
+
+        # 检查是否需要充电
+        if self.battery < 30 and not self.current_order and not self.is_charging:
+            self.need_charge = True
+
+    def start_charging(self):
+        """开始充电"""
+        if self.current_node.node_type == 'charging':
+            self.is_charging = True
+            self.status = f"充电中 {self.battery:.1f}%"
+            self.moving = False
+            self.target_node = None
+            self.path = []
 
     def set_path(self, path):
         """设置路径"""
@@ -90,7 +102,6 @@ class AGV:
             self.status = f"前往节点 {self.task_target}"
             self.waiting = False
             self.wait_counter = 0
-            self.ready_for_new_task = False  # 有任务时不接受新任务
 
     def set_target(self, node):
         """设置移动目标"""
@@ -117,56 +128,29 @@ class AGV:
         return True
 
     def move(self, nodes, other_agvs):
-        """移动逻辑 - 集成等待和电量检查"""
-        import time
+        """移动逻辑"""
+        # 更新电量
+        self.update_battery()
 
-        # 检查上货等待
+        # 处理上下料
         if self.is_loading:
-            if time.time() - self.loading_start_time >= self.loading_duration:
-                self._complete_loading()
-            else:
-                remaining = self.loading_duration - (time.time() - self.loading_start_time)
-                self.status = f"上货中... ({remaining:.1f}秒)"
-                return
-
-        # 检查下货等待
-        if self.is_unloading:
-            if time.time() - self.unloading_start_time >= self.unloading_duration:
-                self._complete_unloading()
-            else:
-                remaining = self.unloading_duration - (time.time() - self.unloading_start_time)
-                self.status = f"下货中... ({remaining:.1f}秒)"
-                return
-
-        # 更新电量系统
-        self.battery_system.update(
-            is_moving=self.moving,
-            is_carrying_cargo=self.is_carrying_cargo
-        )
-
-        # 检查电量是否足够移动
-        if not self.battery_system.can_move():
-            self._handle_battery_empty()
+            self.loading_time -= 1/60  # 每帧减少
+            if self.loading_time <= 0:
+                self._finish_loading()
             return
 
-        # 检查是否在充电站
-        self._check_charging_station(nodes)
-
-        # 如果电量危险且不在充电，优先充电
-        if (self.battery_system.needs_immediate_charging() and
-                not self.battery_system.is_charging and
-                not self.is_at_charging_station):
-            self._emergency_charging_mode()
+        # 充电中不移动
+        if self.is_charging:
+            self.status = f"充电中 {self.battery:.1f}%"
             return
 
-        # 正常移动逻辑
         if not self.moving or not self.target_node:
             self._try_next_path_step(nodes)
             return
 
         # 检查目标节点占用
         if (self.target_node.occupied_by is not None and
-                self.target_node.occupied_by != self.id):
+            self.target_node.occupied_by != self.id):
             self.waiting = True
             self.wait_counter += 1
             self.status = f"等待节点 {self.target_node.id}"
@@ -177,43 +161,30 @@ class AGV:
             # 移动到目标
             self._move_to_target(other_agvs)
 
-    def _handle_battery_empty(self):
-        """处理电量耗尽"""
-        if self.moving:
-            self.moving = False
-            self.target_node = None
-            self.status = "电量耗尽，无法移动"
-            print(f"⚠️ AGV#{self.id} 电量耗尽，停止移动")
+    def start_loading(self, duration):
+        """开始上下料"""
+        self.is_loading = True
+        self.loading_time = duration
+        self.moving = False
 
-    def _check_charging_station(self, nodes):
-        """检查是否在充电站"""
-        current_node = self.current_node
+    def _finish_loading(self):
+        """完成上下料"""
+        self.is_loading = False
 
-        # 检查当前节点是否为充电站
-        if current_node.node_type == 'charging':
-            if not self.is_at_charging_station:
-                self.is_at_charging_station = True
-                self.charging_station_id = current_node.id
-                print(f"AGV#{self.id} 到达充电站 {current_node.id}")
-
-            # 如果需要充电，开始充电
-            if (self.battery_system.needs_charging() and
-                    not self.battery_system.is_charging):
-                self.battery_system.start_charging()
-                self.status = f"在充电站 {current_node.id} 充电中"
-        else:
-            if self.is_at_charging_station:
-                self.is_at_charging_station = False
-                self.charging_station_id = None
-                if self.battery_system.is_charging:
-                    self.battery_system.stop_charging()
-
-    def _emergency_charging_mode(self):
-        """紧急充电模式"""
-        self.status = "紧急充电模式 - 电量危险"
-        if self.moving:
-            self.moving = False
-            self.target_node = None
+        if self.current_order:
+            if not self.is_loaded:
+                # 完成装货
+                self.is_loaded = True
+                self.status = "装货完成"
+                if self.current_order.drop_path:
+                    self.set_path(self.current_order.drop_path)
+            else:
+                # 完成卸货
+                self.is_loaded = False
+                self.status = "订单完成"
+                if self.current_order:
+                    self.current_order.complete()
+                self.current_order = None
 
     def _try_next_path_step(self, nodes):
         """尝试执行路径中的下一步"""
@@ -264,9 +235,6 @@ class AGV:
             future_y = self.y + self.speed * dy / distance
 
             if not self._check_collision_at(future_x, future_y, other_agvs):
-                # 记录移动距离
-                self.total_distance_traveled += self.speed
-
                 self.x = future_x
                 self.y = future_y
                 self.waiting = False
@@ -294,29 +262,44 @@ class AGV:
         if self.current_node.reserved_by == self.id:
             self.current_node.reserved_by = None
 
-        # 处理订单相关逻辑
-        self._handle_order_progress()
-
         # 更新路径状态
         if self.path:
             self.path_index += 1
             if self.path_index >= len(self.path) - 1:
-                self.status = f"已到达 {self.current_node.id}"
+                # 到达路径终点
+                self._handle_arrival()
                 self.path = []
                 self.path_index = 0
                 self.task_target = None
-                # 任务路径完成，可以接受新任务
-                if not self.is_loading and not self.is_unloading:
-                    self.ready_for_new_task = True
-            else:
-                self.status = f"路径中 {self.current_node.id}"
+
+    def _handle_arrival(self):
+        """处理到达目的地"""
+        if self.current_order:
+            if self.current_node.node_type == 'pickup' and not self.is_loaded:
+                # 到达上料点
+                self.status = "正在装货"
+                self.start_loading(random.uniform(3, 10))
+                if self.current_order:
+                    self.current_order.start_loading()
+            elif self.current_node.node_type == 'dropoff' and self.is_loaded:
+                # 到达下料点
+                self.status = "正在卸货"
+                self.start_loading(random.uniform(3, 10))
+                if self.current_order:
+                    self.current_order.start_unloading()
+        elif self.need_charge and self.current_node.node_type == 'charging':
+            # 到达充电点
+            self.start_charging()
+            self.need_charge = False
+        else:
+            self.status = f"已到达 {self.current_node.id}"
 
     def _check_collision_at(self, x, y, other_agvs):
         """检查指定位置是否碰撞"""
         for agv in other_agvs:
             if agv.id == self.id:
                 continue
-            distance = math.sqrt((x - agv.x) ** 2 + (y - agv.y) ** 2)
+            distance = math.sqrt((x - agv.x)**2 + (y - agv.y)**2)
             if distance < self.collision_buffer:
                 return True
         return False
@@ -334,10 +317,10 @@ class AGV:
         if self.moving:
             # 找最近节点
             closest_node = min(nodes.values(),
-                               key=lambda n: (n.x - self.x) ** 2 + (n.y - self.y) ** 2)
+                             key=lambda n: (n.x - self.x)**2 + (n.y - self.y)**2)
 
             if closest_node and (closest_node.occupied_by is None or
-                                 closest_node.occupied_by == self.id):
+                               closest_node.occupied_by == self.id):
                 # 释放当前节点
                 if self.current_node and self.current_node.occupied_by == self.id:
                     self.current_node.occupied_by = None
@@ -357,163 +340,74 @@ class AGV:
         self.status = "已停止"
         self.waiting = False
         self.wait_counter = 0
-        self.ready_for_new_task = True
-
-    def _handle_order_progress(self):
-        """处理订单进度 - 支持等待的版本"""
-        if not self.current_order:
-            return
-
-        current_node_id = self.current_node.id
-
-        # 检查是否到达上货点
-        if (current_node_id == self.current_order.pickup_node_id and
-                not self.is_carrying_cargo and not self.is_loading):
-            self._start_loading()
-
-        # 检查是否到达下货点
-        elif (current_node_id == self.current_order.dropoff_node_id and
-              self.is_carrying_cargo and not self.is_unloading and
-              not self.task_completion_notified):
-            self._start_unloading()
-
-    def _start_loading(self):
-        """开始上货等待"""
-        import time
-        self.is_loading = True
-        self.loading_start_time = time.time()
-        self.loading_duration = random.uniform(3.0, 10.0)  # 3-10秒随机等待
-        self.status = f"开始上货... ({self.loading_duration:.1f}秒)"
-        print(f"AGV#{self.id} 在节点 {self.current_node.id} 开始上货，等待 {self.loading_duration:.1f}秒")
-
-    def _complete_loading(self):
-        """完成上货"""
-        self.is_loading = False
-        self.is_carrying_cargo = True
-        self.status = f"在 {self.current_node.id} 上货完成"
-        print(f"AGV#{self.id} 在节点 {self.current_node.id} 上货完成")
-
-    def _start_unloading(self):
-        """开始下货等待"""
-        import time
-        self.is_unloading = True
-        self.unloading_start_time = time.time()
-        self.unloading_duration = random.uniform(3.0, 10.0)  # 3-10秒随机等待
-        self.status = f"开始下货... ({self.unloading_duration:.1f}秒)"
-        print(f"AGV#{self.id} 在节点 {self.current_node.id} 开始下货，等待 {self.unloading_duration:.1f}秒")
-
-    def _complete_unloading(self):
-        """完成下货"""
-        self.is_unloading = False
-        self.is_carrying_cargo = False
-        self.total_orders_completed += 1
-        self.task_completion_notified = True
-
-        if self.current_order:
-            print(f"AGV#{self.id} 在节点 {self.current_node.id} 完成订单 {self.current_order.id}")
-
-        self.status = f"在 {self.current_node.id} 下货完成"
-
-        # 重要：下货完成后准备接受新任务
-        self.ready_for_new_task = True
 
     def draw(self, painter):
-        """绘制AGV - 增强版本包含等待状态显示"""
+        """绘制AGV"""
         painter.save()
         painter.translate(int(self.x), int(self.y))
         painter.rotate(self.angle)
 
-        # 根据状态调整颜色
-        if self.battery_system.current_charge <= 0:
-            color = QColor(128, 128, 128)  # 灰色表示没电
-        elif self.battery_system.is_charging:
-            color = QColor(0, 150, 255)  # 蓝色表示充电中
-        elif self.is_loading or self.is_unloading:
-            color = QColor(255, 215, 0)  # 金色表示上下货中
-        elif self.waiting:
-            color = self.color.lighter(140)
+        # 根据状态选择颜色
+        if self.battery < 30:
+            base_color = QColor(255, 100, 100)  # 低电量红色
+        elif self.is_charging:
+            base_color = QColor(100, 255, 100)  # 充电中绿色
+        elif self.is_loading:
+            base_color = QColor(255, 255, 100)  # 上下料黄色
         else:
-            color = self.color
+            base_color = self.color
 
-        # 绘制主体
+        color = base_color.lighter(140) if self.waiting else base_color
         painter.setBrush(QBrush(color))
         painter.setPen(QPen(Qt.black, 1))
-        painter.drawRect(-self.width // 2, -self.height // 2, self.width, self.height)
+        painter.drawRect(-self.width//2, -self.height//2, self.width, self.height)
+
+        # 绘制载货标识
+        if self.is_loaded:
+            painter.setBrush(QBrush(QColor(50, 50, 200)))
+            painter.drawEllipse(-4, -4, 8, 8)
 
         # 绘制方向指示
         front_size = 6
         painter.setBrush(QBrush(QColor(30, 30, 30)))
-        painter.drawRect(self.width // 2 - front_size, -front_size // 2, front_size, front_size)
-
-        # 绘制载货指示
-        if self.is_carrying_cargo:
-            painter.setBrush(QBrush(QColor(255, 215, 0)))  # 金色
-            painter.drawEllipse(-3, -3, 6, 6)
+        painter.drawRect(self.width//2 - front_size, -front_size//2, front_size, front_size)
 
         painter.restore()
 
-        # 绘制ID
+        # 绘制ID和电量
         painter.setFont(QFont('Arial', 8, QFont.Bold))
         painter.setPen(QPen(Qt.white))
-        text_rect = QRectF(self.x - self.width // 2, self.y - self.height // 2,
-                           self.width, self.height)
+        text_rect = QRectF(self.x - self.width//2, self.y - self.height//2,
+                          self.width, self.height)
         painter.drawText(text_rect, Qt.AlignCenter, f"#{self.id}")
 
-        # 绘制电量指示器
-        battery_x = int(self.x - self.width // 2)
-        battery_y = int(self.y - self.height // 2 - 15)
-        self.battery_system.draw_battery_indicator(painter, battery_x, battery_y, 24, 8)
+        # 绘制电量条
+        battery_width = 20
+        battery_height = 3
+        battery_x = self.x - battery_width//2
+        battery_y = self.y + self.height//2 + 2
 
-        # 绘制电量百分比
-        if self.battery_system.current_charge < 50:
-            painter.setFont(QFont('Arial', 6))
-            painter.setPen(QPen(Qt.red if self.battery_system.current_charge < 20 else Qt.black))
-            painter.drawText(battery_x, battery_y - 2, f"{self.battery_system.current_charge:.0f}%")
+        painter.setPen(QPen(Qt.black, 1))
+        painter.drawRect(int(battery_x), int(battery_y), battery_width, battery_height)
+
+        # 电量颜色
+        if self.battery > 60:
+            battery_color = QColor(0, 255, 0)
+        elif self.battery > 30:
+            battery_color = QColor(255, 255, 0)
+        else:
+            battery_color = QColor(255, 0, 0)
+
+        painter.setBrush(QBrush(battery_color))
+        painter.drawRect(int(battery_x), int(battery_y),
+                        int(battery_width * self.battery / 100), battery_height)
 
         # 等待状态指示
         if self.waiting:
             painter.setBrush(QBrush(Qt.red))
             painter.setPen(QPen(Qt.red))
-            painter.drawEllipse(int(self.x + self.width // 2 - 4),
-                                int(self.y - self.height // 2 + 4), 8, 8)
-
-        # 充电状态指示
-        if self.battery_system.is_charging:
-            painter.setBrush(QBrush(QColor(0, 255, 255)))
-            painter.setPen(QPen(QColor(0, 255, 255)))
-            painter.drawEllipse(int(self.x - self.width // 2 - 4),
-                                int(self.y - self.height // 2 + 4), 8, 8)
-
-        # 上下货状态指示
-        if self.is_loading or self.is_unloading:
-            painter.setBrush(QBrush(QColor(255, 215, 0)))
-            painter.setPen(QPen(QColor(255, 215, 0)))
-            painter.drawEllipse(int(self.x + self.width // 2 - 4),
-                                int(self.y + self.height // 2 - 4), 8, 8)
-
-    def get_detailed_status(self):
-        """获取详细状态信息"""
-        battery_status = self.battery_system.get_statistics()
-
-        return {
-            'id': self.id,
-            'name': self.name,
-            'position': (self.x, self.y),
-            'current_node': self.current_node.id,
-            'target_node': self.target_node.id if self.target_node else None,
-            'status': self.status,
-            'moving': self.moving,
-            'waiting': self.waiting,
-            'carrying_cargo': self.is_carrying_cargo,
-            'current_order': self.current_order.id if self.current_order else None,
-            'is_loading': self.is_loading,
-            'is_unloading': self.is_unloading,
-            'ready_for_new_task': self.ready_for_new_task,
-            'battery': battery_status,
-            'at_charging_station': self.is_at_charging_station,
-            'total_distance': round(self.total_distance_traveled, 1),
-            'orders_completed': self.total_orders_completed
-        }
+            painter.drawEllipse(int(self.x + self.width//2 - 4),
+                              int(self.y - self.height//2 + 4), 8, 8)
 
     def destroy(self):
         """清理资源"""
@@ -521,46 +415,5 @@ class AGV:
             self.current_node.occupied_by = None
         if self.target_node and self.target_node.reserved_by == self.id:
             self.target_node.reserved_by = None
-        if self.battery_system.is_charging:
-            self.battery_system.stop_charging()
         self.path = []
         self.status = "已销毁"
-
-    def assign_order(self, order):
-        """分配订单"""
-        self.current_order = order
-        self.task_completion_notified = False
-        self.ready_for_new_task = False
-        self.status = f"接受订单 {order.id}"
-
-    def clear_current_order(self):
-        """清空当前订单"""
-        if self.current_order:
-            print(f"AGV#{self.id} 清理订单 {self.current_order.id}")
-            self.current_order = None
-            self.task_completion_notified = False
-            self.ready_for_new_task = True
-
-    def is_task_completed(self):
-        """检查任务是否完成"""
-        return (self.current_order is not None and
-                self.current_node.id == self.current_order.dropoff_node_id and
-                not self.is_carrying_cargo and
-                not self.is_unloading and  # 确保不在下货过程中
-                self.task_completion_notified)
-
-    def is_available_for_task(self):
-        """检查是否可以接受新任务"""
-        return (self.ready_for_new_task and
-                not self.is_loading and
-                not self.is_unloading and
-                not self.moving and
-                self.current_order is None and
-                self.battery_system.can_move())
-
-    def needs_maintenance_charging(self):
-        """检查是否需要维护性充电（无任务时主动充电）"""
-        return (self.is_available_for_task() and
-                self.battery_system.current_charge < 80 and  # 80%以下主动充电
-                not self.battery_system.is_charging and
-                not self.is_at_charging_station)
