@@ -20,7 +20,7 @@ class Order:
 
         # 路径
         self.pickup_path = []  # AGV到上料点的路径
-        self.drop_path = []  # 上料点到下料点的路径
+        self.drop_path = []    # 上料点到下料点的路径
 
         # 时间记录
         self.create_time = time.time()
@@ -92,14 +92,29 @@ class Order:
 
         return times
 
-    def get_info(self):
-        """获取订单信息"""
-        return {
-            "id": self.id,
-            "pickup": self.pickup_node,
-            "dropoff": self.dropoff_node,
-            "status": self.status,
-            "agv": self.assigned_agv.id if self.assigned_agv else None,
-            "total_time": f"{self.get_total_time():.1f}s",
-            "stages": self.get_stage_times()
+    def get_detailed_info(self):
+        """获取详细订单信息，包括时间统计"""
+        stage_times = self.get_stage_times()
+
+        info = {
+            "订单ID": self.id,
+            "路线": f"{self.pickup_node} → {self.dropoff_node}",
+            "状态": self.status,
+            "分配AGV": self.assigned_agv.id if self.assigned_agv else "未分配",
+            "创建时间": datetime.fromtimestamp(self.create_time).strftime("%H:%M:%S"),
+            "总耗时": f"{self.get_total_time():.1f}秒"
         }
+
+        # 添加各阶段详细时间
+        info["阶段耗时"] = {
+            k: f"{v:.1f}秒" for k, v in stage_times.items() if v > 0
+        }
+
+        # 添加预计剩余时间（如果订单未完成）
+        if self.status != "已完成":
+            elapsed = time.time() - self.create_time
+            # 简单估算：平均每个订单60秒
+            estimated_remaining = max(0, 60 - elapsed)
+            info["预计剩余"] = f"{estimated_remaining:.1f}秒"
+
+        return info

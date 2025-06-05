@@ -41,7 +41,7 @@ class AGV:
         # 状态属性
         self.status = "空闲"
         self.waiting = False
-        self.collision_buffer = 25
+        self.collision_buffer = 50*1.414
         self.wait_counter = 0
         self.priority = 5
 
@@ -261,6 +261,16 @@ class AGV:
         self.current_node.occupied_by = self.id
         if self.current_node.reserved_by == self.id:
             self.current_node.reserved_by = None
+
+        # 检查是否是临时让路
+        if hasattr(self, '_temp_bypass') and self._temp_bypass:
+            self._temp_bypass = False
+            # 恢复原始路径
+            if hasattr(self, '_original_path') and self._original_path:
+                self.set_path(self._original_path)
+                self._original_path = None
+                self._original_target = None
+                return
 
         # 更新路径状态
         if self.path:

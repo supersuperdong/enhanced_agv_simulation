@@ -71,10 +71,10 @@ class SimulationWidget(QWidget):
         self.timer.timeout.connect(self._update_simulation)
         self.timer.start(16)  # ~60 FPS
 
-        # 调度定时器
+        # 调度定时器 - 提高频率以更快检测死锁
         self.scheduler_timer = QTimer(self)
         self.scheduler_timer.timeout.connect(self._update_scheduler)
-        self.scheduler_timer.start(1000)  # 每秒更新一次
+        self.scheduler_timer.start(200)  # 每0.2秒更新一次，更快响应死锁
 
     def _load_initial_data(self):
         """加载初始数据"""
@@ -230,6 +230,12 @@ class SimulationWidget(QWidget):
 
         # 检查空闲AGV
         self.scheduler.check_idle_agvs(self.agvs, self.nodes)
+
+        # 检查并解决死锁
+        self.scheduler.check_and_resolve_deadlocks(self.agvs, self.nodes)
+
+        # 更新充电预约
+        self.scheduler.update_charging_reservations(self.agvs)
 
     def _update_active_paths(self):
         """更新活动路径"""

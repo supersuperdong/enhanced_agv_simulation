@@ -4,6 +4,7 @@
 
 import random
 import datetime
+import time
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QPushButton, QComboBox, QCheckBox, QTextEdit,
                              QGroupBox, QMessageBox, QScrollArea)
@@ -227,12 +228,29 @@ class ControlPanel(QWidget):
             f"  已完成: {stats['已完成']}"
         ]
 
-        # 显示最近订单
-        recent_orders = self.simulation_widget.scheduler.orders[-5:]
+        # 添加平均完成时间
+        if "平均完成时间" in stats:
+            order_lines.append(f"  平均耗时: {stats['平均完成时间']}")
+
+        # 显示最近订单及其时间信息
+        recent_orders = self.simulation_widget.scheduler.orders[-3:]
         if recent_orders:
             order_lines.append("\n最近订单:")
             for order in reversed(recent_orders):
-                order_lines.append(f"  #{order.id}: {order.pickup_node}→{order.dropoff_node} [{order.status}]")
+                order_lines.append(f"  #{order.id}: {order.pickup_node}→{order.dropoff_node}")
+                order_lines.append(f"    状态: {order.status}")
+
+                # 显示时间信息
+                if order.status == "已完成":
+                    times = order.get_stage_times()
+                    order_lines.append(f"    总耗时: {order.get_total_time():.1f}秒")
+                    if times["装货"] > 0:
+                        order_lines.append(f"    装货: {times['装货']:.1f}秒")
+                    if times["运输"] > 0:
+                        order_lines.append(f"    运输: {times['运输']:.1f}秒")
+                elif order.assign_time:
+                    elapsed = time.time() - order.create_time
+                    order_lines.append(f"    已用时: {elapsed:.1f}秒")
 
         self.order_status.setText("\n".join(order_lines))
 

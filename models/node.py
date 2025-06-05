@@ -11,8 +11,8 @@ class Node:
 
     def __init__(self, id, x, y, node_type='normal'):
         self.id = id
-        self.x = x*1.4142
-        self.y = y*1.4142
+        self.x = x*2
+        self.y = y*2
         self.size = 24  # 节点大小放大一倍：12×12 → 24×24
         self.connections = []  # 连接的其他节点ID
         self.node_type = node_type  # 节点类型
