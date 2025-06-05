@@ -23,14 +23,14 @@ class AGV:
         self.y = start_node.y
 
         # 外观属性
-        self.width = 24
-        self.height = 24
+        self.width = 48
+        self.height = 48
         self.color = QColor(255, 140, 0)
 
         # 运动属性
         self.angle = 0
         self.target_angle = 0
-        self.speed = 2
+        self.speed = 4
         self.moving = False
 
         # 路径属性
