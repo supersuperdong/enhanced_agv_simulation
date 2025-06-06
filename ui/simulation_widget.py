@@ -473,58 +473,6 @@ class SimulationWidget(QWidget):
         for i, line in enumerate(info_lines):
             painter.drawText(10, 35 + i * 15, line)
 
-    # =============================================================================
-    # 导出功能
-    # =============================================================================
-
-    def export_map(self, width, height, settings):
-        """导出地图"""
-        try:
-            pixmap = QPixmap(width, height)
-            pixmap.fill(QColor(235, 240, 245))
-
-            painter = QPainter(pixmap)
-            if settings.get('anti_aliasing', True):
-                painter.setRenderHint(QPainter.Antialiasing)
-
-            # 计算变换
-            transform = self._calculate_export_transform(width, height)
-            if transform:
-                scale, offset_x, offset_y = transform
-                painter.translate(offset_x, offset_y)
-                painter.scale(scale, scale)
-                self._draw_simulation(painter)
-
-            painter.end()
-            return pixmap
-        except Exception as e:
-            print(f"导出地图错误: {e}")
-            return None
-
-    def _calculate_export_transform(self, width, height):
-        """计算导出变换"""
-        if not self.nodes:
-            return None
-
-        coords = [(node.x, node.y) for node in self.nodes.values()]
-        min_x = min(x for x, y in coords)
-        max_x = max(x for x, y in coords)
-        min_y = min(y for x, y in coords)
-        max_y = max(y for x, y in coords)
-
-        map_width = max_x - min_x
-        map_height = max_y - min_y
-
-        if map_width <= 0 or map_height <= 0:
-            return None
-
-        margin = 50
-        scale = min((width - 2*margin) / map_width, (height - 2*margin) / map_height)
-
-        offset_x = (width - map_width * scale) / 2 - min_x * scale
-        offset_y = (height - map_height * scale) / 2 - min_y * scale
-
-        return scale, offset_x, offset_y
 
     # =============================================================================
     # 其他方法

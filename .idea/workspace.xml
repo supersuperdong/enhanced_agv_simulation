@@ -6,12 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="bc88e1d4-4473-4b58-a4df-8eb32479e4c9" name="更改" comment="order version">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/agv.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/agv.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/node.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/node.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/order.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/order.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/scheduler.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/scheduler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/control_panel.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/control_panel.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ui/simulation_widget.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/simulation_widget.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

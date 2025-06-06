@@ -41,7 +41,7 @@ class AGV:
         # 状态属性
         self.status = "空闲"
         self.waiting = False
-        self.collision_buffer = 50*1.414
+        self.collision_buffer = 60
         self.wait_counter = 0
         self.priority = 5
 
