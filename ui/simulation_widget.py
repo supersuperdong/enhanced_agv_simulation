@@ -118,7 +118,7 @@ class SimulationWidget(QWidget):
         # 选择起始节点
         if start_node_id not in self.nodes:
             available_nodes = [nid for nid, node in self.nodes.items()
-                             if node.occupied_by is None]
+                               if node.occupied_by is None and node.reserved_by is None]
             if not available_nodes:
                 return None
             start_node_id = random.choice(available_nodes)
@@ -130,6 +130,9 @@ class SimulationWidget(QWidget):
         # 创建AGV
         agv = AGV(self.agv_counter, start_node)
 
+        # 设置到达节点回调
+        agv.on_node_arrived = self._on_agv_node_arrived
+
         # 设置颜色
         colors = [QColor(255, 140, 0), QColor(0, 180, 120), QColor(180, 0, 180),
                   QColor(255, 100, 100), QColor(100, 255, 100)]
@@ -138,6 +141,34 @@ class SimulationWidget(QWidget):
         self.agvs.append(agv)
         self.agv_counter += 1
         return agv
+
+    def _on_agv_node_arrived(self, agv, node):
+        """AGV到达节点的回调处理"""
+        # 如果AGV还有剩余路径，预约下一个节点
+        if agv.path and agv.path_index < len(agv.path) - 1:
+            # 查找路径中的下一个节点
+            next_node_id = agv.path[agv.path_index + 1]
+            if next_node_id in self.nodes:
+                next_node = self.nodes[next_node_id]
+
+                # 检查下一个节点是否可以预约
+                if next_node.occupied_by is None and next_node.reserved_by is None:
+                    # 提前预约下一个节点
+                    next_node.reserved_by = agv.id
+                    next_node.reservation_time = 100  # 给更长的预约时间
+                    print(f"AGV#{agv.id} 预约了节点 {next_node_id}")
+                elif next_node.reserved_by == agv.id:
+                    # 如果已经是自己预约的，延长预约时间
+                    next_node.reservation_time = 100
+
+        # 清理不再需要的预约
+        for node_id, n in self.nodes.items():
+            if n.reserved_by == agv.id and node_id != node.id:
+                # 如果不是当前节点或下一个目标节点，清除预约
+                if not (agv.path and agv.path_index < len(agv.path) - 1 and
+                        node_id == agv.path[agv.path_index + 1]):
+                    n.reserved_by = None
+                    n.reservation_time = 0
 
     def remove_agv(self, agv_id):
         """移除AGV"""

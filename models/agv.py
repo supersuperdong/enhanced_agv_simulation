@@ -56,6 +56,9 @@ class AGV:
         self.loading_time = 0  # 上下料倒计时
         self.is_loading = False  # 是否正在上下料
 
+        # 添加到达节点的回调
+        self.on_node_arrived = None  # 回调函数: (agv, node) -> None
+
         # 占用起始节点
         start_node.occupied_by = self.id
 
@@ -108,14 +111,21 @@ class AGV:
         if node.id not in self.current_node.connections:
             return False
 
+        # 严格检查：节点必须完全空闲或被自己占用/预约
         if node.occupied_by is not None and node.occupied_by != self.id:
-            self.status = f"等待节点 {node.id}"
+            self.status = f"等待节点 {node.id} (被占用)"
             self.waiting = True
             return False
 
+        if node.reserved_by is not None and node.reserved_by != self.id:
+            self.status = f"等待节点 {node.id} (已预约)"
+            self.waiting = True
+            return False
+
+        # 预约目标节点
         self.target_node = node
         node.reserved_by = self.id
-        node.reservation_time = 50
+        node.reservation_time = 100  # 给充足的预约时间
 
         # 计算朝向
         dx = node.x - self.x
@@ -134,7 +144,7 @@ class AGV:
 
         # 处理上下料
         if self.is_loading:
-            self.loading_time -= 1/60  # 每帧减少
+            self.loading_time -= 1 / 60
             if self.loading_time <= 0:
                 self._finish_loading()
             return
@@ -148,12 +158,26 @@ class AGV:
             self._try_next_path_step(nodes)
             return
 
-        # 检查目标节点占用
-        if (self.target_node.occupied_by is not None and
-            self.target_node.occupied_by != self.id):
+        # 关键修复：移动前再次检查目标节点是否被其他AGV占用或预约
+        if self.target_node.occupied_by is not None and self.target_node.occupied_by != self.id:
+            # 目标节点被其他AGV占用了，停止移动
+            self.moving = False
             self.waiting = True
             self.wait_counter += 1
-            self.status = f"等待节点 {self.target_node.id}"
+            self.status = f"等待节点 {self.target_node.id} (被AGV#{self.target_node.occupied_by}占用)"
+            # 释放预约
+            if self.target_node.reserved_by == self.id:
+                self.target_node.reserved_by = None
+            self.target_node = None
+            return
+
+        if self.target_node.reserved_by is not None and self.target_node.reserved_by != self.id:
+            # 目标节点被其他AGV预约了，停止移动
+            self.moving = False
+            self.waiting = True
+            self.wait_counter += 1
+            self.status = f"等待节点 {self.target_node.id} (被AGV#{self.target_node.reserved_by}预约)"
+            self.target_node = None
             return
 
         # 旋转到目标角度
@@ -194,12 +218,30 @@ class AGV:
         next_node_id = self.path[self.path_index + 1]
         if next_node_id in nodes:
             next_node = nodes[next_node_id]
-            if next_node.occupied_by is None or next_node.occupied_by == self.id:
+
+            # 严格检查：只有当节点完全空闲或已经被自己预约时才能前往
+            can_move = False
+
+            # 情况1：节点完全空闲
+            if next_node.occupied_by is None and next_node.reserved_by is None:
+                can_move = True
+            # 情况2：节点被自己占用或预约
+            elif next_node.occupied_by == self.id or next_node.reserved_by == self.id:
+                can_move = True
+
+            if can_move:
                 if self.set_target(next_node):
                     self.wait_counter = 0
             else:
+                # 不能移动，进入等待状态
                 self.waiting = True
                 self.wait_counter += 1
+
+                # 更新状态信息，显示具体原因
+                if next_node.occupied_by is not None and next_node.occupied_by != self.id:
+                    self.status = f"等待节点 {next_node.id} (被AGV#{next_node.occupied_by}占用)"
+                elif next_node.reserved_by is not None and next_node.reserved_by != self.id:
+                    self.status = f"等待节点 {next_node.id} (被AGV#{next_node.reserved_by}预约)"
 
     def _rotate_to_target(self):
         """旋转到目标角度"""
@@ -261,6 +303,10 @@ class AGV:
         self.current_node.occupied_by = self.id
         if self.current_node.reserved_by == self.id:
             self.current_node.reserved_by = None
+
+        # 触发到达节点回调
+        if self.on_node_arrived:
+            self.on_node_arrived(self, self.current_node)
 
         # 检查是否是临时让路
         if hasattr(self, '_temp_bypass') and self._temp_bypass:
