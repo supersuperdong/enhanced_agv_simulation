@@ -7,7 +7,7 @@
     <list default="true" id="bc88e1d4-4473-4b58-a4df-8eb32479e4c9" name="更改" comment="order version">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/agv.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/agv.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/simulation_widget.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/simulation_widget.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/scheduler.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/scheduler.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -202,7 +202,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749091347951</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="order version">
+      <option name="closed" value="true" />
+      <created>1749194123175</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1749194123175</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">

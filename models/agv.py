@@ -71,8 +71,8 @@ class AGV:
                 self.is_charging = False
                 self.status = "充电完成"
         elif self.is_loading:
-            # 上下料时不消耗电量
-            pass
+            # 上下料消耗
+            self.battery -= 0.15 / 60  # 0.15%/秒
         elif self.moving:
             # 移动中消耗电量
             if self.is_loaded:
@@ -96,13 +96,18 @@ class AGV:
             self.target_node = None
             self.path = []
 
+
     def set_path(self, path):
         """设置路径"""
         if len(path) > 1:
             self.path = path
             self.path_index = 0
-            self.task_target = path[-1]
-            self.status = f"前往节点 {self.task_target}"
+            self.task_target = path[-1]  # 最终目标
+
+            # 修复：显示下一个节点而不是终点
+            next_node_id = path[1]
+            self.status = f"前往节点 {next_node_id}"
+
             self.waiting = False
             self.wait_counter = 0
 
@@ -210,38 +215,24 @@ class AGV:
                     self.current_order.complete()
                 self.current_order = None
 
+
+
     def _try_next_path_step(self, nodes):
-        """尝试执行路径中的下一步"""
+        """尝试执行路径中的下一步 - 修复版"""
         if not self.path or self.path_index + 1 >= len(self.path):
             return
 
         next_node_id = self.path[self.path_index + 1]
         if next_node_id in nodes:
             next_node = nodes[next_node_id]
-
-            # 严格检查：只有当节点完全空闲或已经被自己预约时才能前往
-            can_move = False
-
-            # 情况1：节点完全空闲
-            if next_node.occupied_by is None and next_node.reserved_by is None:
-                can_move = True
-            # 情况2：节点被自己占用或预约
-            elif next_node.occupied_by == self.id or next_node.reserved_by == self.id:
-                can_move = True
-
-            if can_move:
+            if next_node.occupied_by is None or next_node.occupied_by == self.id:
                 if self.set_target(next_node):
                     self.wait_counter = 0
             else:
-                # 不能移动，进入等待状态
                 self.waiting = True
                 self.wait_counter += 1
-
-                # 更新状态信息，显示具体原因
-                if next_node.occupied_by is not None and next_node.occupied_by != self.id:
-                    self.status = f"等待节点 {next_node.id} (被AGV#{next_node.occupied_by}占用)"
-                elif next_node.reserved_by is not None and next_node.reserved_by != self.id:
-                    self.status = f"等待节点 {next_node.id} (被AGV#{next_node.reserved_by}预约)"
+                # 修复：明确显示正在等待的是下一个节点
+                self.status = f"等待节点 {next_node_id} (被AGV#{next_node.occupied_by}占用)"
 
     def _rotate_to_target(self):
         """旋转到目标角度"""
