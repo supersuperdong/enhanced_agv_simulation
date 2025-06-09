@@ -23,8 +23,8 @@ class AGV:
         self.y = start_node.y
 
         # 外观属性
-        self.width = 48
-        self.height = 48
+        self.width = 40
+        self.height = 40
         self.color = QColor(255, 140, 0)
 
         # 运动属性
@@ -41,7 +41,7 @@ class AGV:
         # 状态属性
         self.status = "空闲"
         self.waiting = False
-        self.collision_buffer = 60
+        self.collision_buffer = 50
         self.wait_counter = 0
         self.priority = 5
 
